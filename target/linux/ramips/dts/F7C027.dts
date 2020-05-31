@@ -9,6 +9,10 @@
 	compatible = "belkin,f7c027", "ralink,rt5350-soc";
 	model = "Belkin F7C027";
 
+	chosen {
+		bootargs = "console=ttyS0,57600 root=/dev/mtdblock4";
+	};
+
 	aliases {
 		led-boot = &led_status_orange;
 		led-failsafe = &led_status_orange;
@@ -98,13 +102,11 @@
 			partition@50000 {
 				label = "kernel_1";
 				reg = <0x50000 0x140000>;
-				read-only;
 			};
 
 			partition@190000 {
 				label = "rootfs_1";
 				reg = <0x190000 0x630000>;
-				read-only;
 			};
 
 			partition@7c0000 {
