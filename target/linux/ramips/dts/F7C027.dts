@@ -96,34 +96,45 @@
 			};
 
 			partition@50000 {
-				compatible = "denx,uimage";
-				label = "firmware";
-				reg = <0x50000 0x770000>;
+				label = "kernel_1";
+				reg = <0x50000 0x140000>;
+				read-only;
+			};
+
+			partition@190000 {
+				label = "rootfs_1";
+				reg = <0x190000 0x630000>;
+				read-only;
 			};
 
 			partition@7c0000 {
-				label = "firmware2";
-				reg = <0x7c0000 0x770000>;
+				label = "kernel_2";
+				reg = <0x7c0000 0x140000>;
+				read-only;
+			};
+
+			partition@900000 {
+				label = "rootfs_2";
+				reg = <0x900000 0x630000>;
+				read-only;
 			};
 
 			partition@f30000 {
 				label = "belkin_settings";
 				reg = <0xf30000 0xa0000>;
-			};
-
-			partition@fd0000 {
-				label = "unknown";
-				reg = <0xfd0000 0x10000>;
+				read-only;
 			};
 
 			partition@fe0000 {
 				label = "nvram";
 				reg = <0xfe0000 0x10000>;
+				read-only;
 			};
 
 			partition@ff0000 {
 				label = "user_factory";
 				reg = <0xff0000 0x10000>;
+				read-only;
 			};
 		};
 	};
