@@ -345,6 +345,13 @@ define Device/f7c027
 endef
 TARGET_DEVICES += f7c027
 
+define Device/f7c029
+  DTS := F7C029
+  IMAGE_SIZE := 7616k
+  DEVICE_TITLE := Belkin F7C029
+endef
+TARGET_DEVICES += f7c029
+
 define Device/fonera20n
   DTS := FONERA20N
   IMAGES += factory.bin
