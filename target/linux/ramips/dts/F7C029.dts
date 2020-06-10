@@ -50,6 +50,12 @@
 			gpios = <&gpio0 17 GPIO_ACTIVE_LOW>;
 			linux,code = <BTN_0>;
 		};
+
+		touch {
+			label = "touch";
+			gpios = <&gpio0 20 GPIO_ACTIVE_LOW>;
+			linux,code = <BTN_1>;
+		};
 	};
 };
 
@@ -142,6 +148,10 @@
 };
 
 &ethernet {
+	status = "disabled";
+};
+
+&esw {
 	status = "disabled";
 };
 
