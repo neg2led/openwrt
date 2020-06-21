@@ -152,7 +152,7 @@
 };
 
 &esw {
-	status = "disabled";
+	mediatek,portdisable = <0x1f>;
 };
 
 &uart {
