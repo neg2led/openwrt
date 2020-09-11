@@ -1,0 +1,274 @@
+/*
+ * Device Tree file for Marvell Armada 3720 community board
+ * Copyright (C) 2016 Marvell
+ *
+ * This file is dual-licensed: you can use it either under the terms
+ * of the GPL or the X11 license, at your option. Note that this dual
+ * licensing only applies to this file, and not this project as a
+ * whole.
+ *
+ *  a) This file is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This file is distributed in the hope that it will be useful
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ * Or, alternatively
+ *
+ *  b) Permission is hereby granted, free of charge, to any person
+ *     obtaining a copy of this software and associated documentation
+ *     files (the "Software"), to deal in the Software without
+ *     restriction, including without limitation the rights to use
+ *     copy, modify, merge, publish, distribute, sublicense, and/or
+ *     sell copies of the Software, and to permit persons to whom the
+ *     Software is furnished to do so, subject to the following
+ *     conditions:
+ *
+ *     The above copyright notice and this permission notice shall be
+ *     included in all copies or substantial portions of the Software.
+ *
+ *     THE SOFTWARE IS PROVIDED , WITHOUT WARRANTY OF ANY KIND
+ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
+ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ *     OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include "armada-372x.dtsi"
+
+/ {
+	model = "Marvell Armada 3720 ECK Board";
+	compatible = "tplink,oc200", "marvell,armada-3720-oc200", "marvell,armada-3720-eck", "marvell,armada3720", "marvell,armada3710";
+
+	chosen {
+		bootargs = "console=ttyMV0,115200";
+		stdout-path = "serial0:115200n8";
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x00000000 0x00000000 0x00000000 0x20000000>;
+	};
+
+	soc {
+		internal-regs {
+			reg_avs: avs@11500 {
+				status = "okay";
+			};
+
+			spinctrl: south-bridge-pinctrl@18830 {
+				system_led_pins: system-led-pins {
+					marvell,pins = "mpp1";
+					marvell,function = "gpio";
+				};
+
+				system_reset_pins: system-reset-pins {
+					marvell,pins = "mpp4";
+					marvell,function = "gpio";
+				};
+			};
+
+			u3d@50000 {
+				status = "disabled";
+				//phys = <&a3700_comphy 0 COMPHY_USB3>;
+				phy-names = "usb";
+			};
+
+			udc@54100 {
+				status = "disabled";
+				//phys = <&utmi_usb32>;
+				phy-names = "usb";
+			};
+
+			usb3@58000 {
+				status = "okay";
+			};
+
+			usb2@5e000 {
+				status = "okay";
+			};
+
+			utmi_usb32: utmi@5d000 {
+				status = "okay";
+			};
+
+			utmi_usb2: utmi@5f000 {
+				status = "okay";
+			};
+
+			vcc_sd_reg1: regulator@0 {
+				compatible = "regulator-gpio";
+				regulator-name = "vcc_sd1";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+
+				gpios = <&gpionb 4 GPIO_ACTIVE_HIGH>;
+				gpios-states = <0>;
+				states = <1800000 0x1
+					  3300000 0x0>;
+
+				enable-active-high;
+			};
+
+			eip97: eip97@90000 {
+				status = "okay";
+			};
+		};
+	};
+
+/* Upstream has no DSA support for ar8236 */
+/*
+	dsa@0 {
+		compatible = "marvell,dsa";
+		dsa,ethernet = <&eth0>;
+		dsa,mii-bus = <&mdio>;
+		#address-cells = <2>;
+		#size-cells = <0>;
+
+		switch@0 {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0 0>;
+
+				port@0 {
+						reg = <0>;
+						label = "cpu";
+						fixed-link {
+							speed = <100>;
+							full-duplex;
+						};
+				};
+
+				port@1 {
+						reg = <1>;
+						label = "lan0";
+						phy-handle = <&phy1>;
+				};
+
+				port@2 {
+						reg = <2>;
+						label = "lan1";
+						phy-handle = <&phy2>;
+				};
+		};
+	};
+*/
+
+	gpio-leds {
+		compatible = "gpio-leds";
+		pinctrl-0 = <&system_led_pins>;
+		pinctrl-names = "default";
+
+		system-led {
+			label = "system-led";
+			gpios = <&gpiosb 1 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		pinctrl-0 = <&system_reset_pins>;
+		pinctrl-names = "default";
+
+		reset-button {
+			label = "reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpiosb 4 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
+
+&spi0 {
+	status = "okay";
+
+	spi-flash@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		reg = <0>; /* Chip select 0 */
+		spi-max-frequency = <104000000>;
+		m25p,fast-read;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi_cs1_pins &spi_quad_pins>;
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&i2c0 {
+	status = "okay";
+};
+
+&i2c1 {
+	status = "okay";
+};
+
+&eth0 {
+	phy-mode = "rgmii";
+	status = "okay";
+
+	fixed-link {
+		speed = <100>;
+		full-duplex;
+	};
+
+};
+
+&mdio {
+	switch0: switch@0 {
+		compatible = "qca,ar8236";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0 0>;
+	};
+};
+
+&sdhci1 {
+	wp-inverted;
+	bus-width = <4>;
+	cd-gpios = <&gpionb 3 GPIO_ACTIVE_LOW>;
+	no-1-8-v;
+	vqmmc-supply = <&vcc_sd_reg1>;
+	marvell,pad-type = "sd";
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&sdio_pins>;
+};
+
+&sdhci0 {
+	marvell,pad-type = "fixed-1-8v";
+	non-removable;
+	bus-width = <8>;
+	cap-mmc-highspeed;
+	max-frequency = <52000000>;
+	marvell,xenon-emmc;
+	marvell,xenon-broken-hs200;
+	marvell,xenon-tun-count = <9>;
+	status = "okay";
+
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc_pins>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	mmccard: mmccard@0 {
+		compatible = "mmc-card";
+		reg = <0>;
+	};
+};

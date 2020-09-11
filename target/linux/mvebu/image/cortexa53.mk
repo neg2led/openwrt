@@ -92,3 +92,22 @@ define Device/methode_udpu
   BOOT_SCRIPT := udpu
 endef
 TARGET_DEVICES += methode_udpu
+
+define Device/tplink_oc200
+  $(Device/NAND-512K)
+  DEVICE_VENDOR := TP-Link
+  DEVICE_MODEL := OC200
+  DEVICE_VARIANT := V1
+  DEVICE_DTS := armada-3720-oc200
+  DEVICE_DTS_DIR := $(DTS_DIR)/marvell
+  FILESYSTEMS := squashfs
+  KERNEL := kernel-bin
+  KERNEL_INITRAMFS := kernel-bin | append-dtb
+  #KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
+  KERNEL_LOADADDR := 0x5000000
+  KERNEL_NAME := Image
+  IMAGES := factory.bin
+  IMAGE/factory.bin := append-rootfs | tplink-mvebu
+  TPLINK_BOARD_ID := OC200
+endef
+TARGET_DEVICES += tplink_oc200
