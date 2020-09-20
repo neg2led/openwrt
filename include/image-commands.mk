@@ -459,6 +459,15 @@ define Build/sysupgrade-tar
 		$@
 endef
 
+define Build/tplink-mvebu
+	$(SCRIPT_DIR)/oc200.py \
+		--dtb $(KDIR)/image-$(firstword $(DEVICE_DTS)).dtb \
+		--kernel $(IMAGE_KERNEL) \
+		--rootfs $@ \
+		--output $@.new && mv $@.new $@
+
+endef
+
 define Build/tplink-safeloader
 	-$(STAGING_DIR_HOST)/bin/tplink-safeloader \
 		-B $(TPLINK_BOARD_ID) \
