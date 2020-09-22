@@ -103,11 +103,14 @@ define Device/tplink_oc200
   FILESYSTEMS := squashfs
   KERNEL := kernel-bin
   KERNEL_INITRAMFS := kernel-bin | append-dtb
-  #KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
   KERNEL_LOADADDR := 0x5000000
   KERNEL_NAME := Image
-  IMAGES := factory.bin
+  IMAGES := factory.bin sysupgrade.bin
   IMAGE/factory.bin := append-rootfs | tplink-mvebu
+  IMAGE/sysupgrade.bin := append-dtb | pad-to 64k | check-size 64k | \
+	append-kernel | pad-to 32832k | check-size 32832k | \
+	append-rootfs | pad-rootfs $$(BLOCKSIZE) | check-size 295424k | \
+	append-metadata
   TPLINK_BOARD_ID := OC200
 endef
 TARGET_DEVICES += tplink_oc200
