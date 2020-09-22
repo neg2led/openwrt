@@ -1,0 +1,41 @@
+diff --git a/drivers/net/dsa/qca8k.c b/drivers/net/dsa/qca8k.c
+index f1e484477e35..b50d953e6d6b 100644
+--- a/drivers/net/dsa/qca8k.c
++++ b/drivers/net/dsa/qca8k.c
+@@ -1433,8 +1433,14 @@ qca8k_sw_probe(struct mdio_device *mdiodev)
+ 	id = qca8k_read(priv, QCA8K_REG_MASK_CTRL);
+ 	id >>= QCA8K_MASK_CTRL_ID_S;
+ 	id &= QCA8K_MASK_CTRL_ID_M;
+-	if (id != QCA8K_ID_QCA8337)
++
++	switch (id) {
++	case QCA8K_ID_QCA8337:
++	case QCA8K_ID_QCA8236:
++		break;
++	default:
+ 		return -ENODEV;
++	}
+ 
+ 	priv->ds = devm_kzalloc(&mdiodev->dev, sizeof(*priv->ds), GFP_KERNEL);
+ 	if (!priv->ds)
+@@ -1501,6 +1507,7 @@ static SIMPLE_DEV_PM_OPS(qca8k_pm_ops,
+ 			 qca8k_suspend, qca8k_resume);
+ 
+ static const struct of_device_id qca8k_of_match[] = {
++	{ .compatible = "qca,qca8236" },
+ 	{ .compatible = "qca,qca8334" },
+ 	{ .compatible = "qca,qca8337" },
+ 	{ /* sentinel */ },
+diff --git a/drivers/net/dsa/qca8k.h b/drivers/net/dsa/qca8k.h
+index 7ca4b93e0bb5..b8458e758db8 100644
+--- a/drivers/net/dsa/qca8k.h
++++ b/drivers/net/dsa/qca8k.h
+@@ -15,7 +15,7 @@
+ #define QCA8K_NUM_PORTS					7
+ #define QCA8K_MAX_MTU					9000
+ 
+-#define PHY_ID_QCA8337					0x004dd036
++#define QCA8K_ID_QCA8236				0x03
+ #define QCA8K_ID_QCA8337				0x13
+ 
+ #define QCA8K_NUM_FDB_RECORDS				2048
