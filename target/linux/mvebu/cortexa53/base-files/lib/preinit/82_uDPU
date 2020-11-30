@@ -42,6 +42,18 @@ preinit_mount_udpu() {
 		# Legacy support - if rootfs was booted, instruct u-boot to keep the current root dev
 		[ "$(df | grep /dev/root)" ] && fw_setenv root_ok '2'
 	;;
+	tplink,oc200)
+		if [ -b /dev/mmcblk0p4 ]; then
+			mkdir -p /data
+			mount -t ext4 /dev/mmcblk0p4 /data
+			[ -f "/data/$BACKUP_FILE" ] && {
+				echo "- Restoring configuration files -"
+				tar xzf "/data/$BACKUP_FILE" -C /
+				rm -f "/data/$BACKUP_FILE"
+				sync
+			}
+		fi
+	;;
 	esac
 }
 

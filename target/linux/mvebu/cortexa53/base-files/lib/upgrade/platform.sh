@@ -36,6 +36,9 @@ platform_do_upgrade() {
 	methode,udpu)
 		platform_do_upgrade_uDPU "$1"
 		;;
+	tplink,oc200)
+		platform_do_upgrade_oc200 "$1"
+		;;
 	*)
 		default_do_upgrade "$1"
 		;;
@@ -53,6 +56,9 @@ platform_copy_config() {
 		;;
 	methode,udpu)
 		platform_copy_config_uDPU
+		;;
+	tplink,oc200)
+		platform_copy_config_oc200
 		;;
 	esac
 }
