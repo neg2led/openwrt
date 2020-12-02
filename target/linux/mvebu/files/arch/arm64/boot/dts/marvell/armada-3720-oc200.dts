@@ -122,6 +122,23 @@
 				enable-active-high;
 			};
 
+
+			bm: bm@c0000 {
+				compatible = "marvell,armada-380-neta-bm";
+				reg = <0xc0000 0xac>;
+				clocks = <&sb_periph_clk 9>;
+				internal-mem = <&bm_bppi>;
+				status = "okay";
+			};
+
+			bm_bppi: bm-bppi {
+				compatible = "mmio-sram";
+				reg = <0xc8000 0x1000>;
+				clocks = <&sb_periph_clk 9>;
+				no-memory-wc;
+				status = "okay";
+			};
+
 			eip97: eip97@90000 {
 				status = "okay";
 			};
@@ -222,10 +239,14 @@
 &eth0 {
 	phy-mode = "rgmii";
 	status = "okay";
+	buffer-manager = <&bm>;
+	bm,pool-long = <1>;
+	bm,pool-short = <3>;
 
 	fixed-link {
 		speed = <100>;
 		full-duplex;
+		//pause;
 	};
 
 };

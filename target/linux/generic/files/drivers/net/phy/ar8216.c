@@ -202,6 +202,8 @@ ar8xxx_phy_init(struct ar8xxx_priv *priv)
 	int i;
 	struct mii_bus *bus;
 
+	pr_err("%s\n", __PRETTY_FUNCTION__);
+
 	bus = priv->sw_mii_bus ?: priv->mii_bus;
 	for (i = 0; i < AR8XXX_NUM_PHYS; i++) {
 		if (priv->chip->phy_fixup)
@@ -216,6 +218,11 @@ ar8xxx_phy_init(struct ar8xxx_priv *priv)
 	}
 
 	ar8xxx_phy_poll_reset(bus);
+
+	pr_err("ar8xxx_phy_init: setting custom registers\n");
+
+	ar8xxx_write(priv, 0x002c, 0x7e3f003f);
+	ar8xxx_write(priv, 0x0004, 0x00000500);
 }
 
 u32
@@ -720,6 +727,8 @@ ar8216_setup_port(struct ar8xxx_priv *priv, int port, u32 members)
 static int
 ar8216_hw_init(struct ar8xxx_priv *priv)
 {
+	pr_err("%s\n", __PRETTY_FUNCTION__);
+
 	if (priv->initialized)
 		return 0;
 
@@ -746,6 +755,8 @@ static void
 __ar8216_init_port(struct ar8xxx_priv *priv, int port,
 		   bool cpu_ge, bool flow_en)
 {
+	pr_err("%s\n", __PRETTY_FUNCTION__);
+
 	/* Enable port learning and tx */
 	ar8xxx_write(priv, AR8216_REG_PORT_CTRL(port),
 		AR8216_PORT_CTRL_LEARN |
@@ -764,13 +775,16 @@ __ar8216_init_port(struct ar8xxx_priv *priv, int port,
 			AR8216_PORT_STATUS_DUPLEX);
 	} else {
 		ar8xxx_write(priv, AR8216_REG_PORT_STATUS(port),
-			AR8216_PORT_STATUS_LINK_AUTO);
+			AR8216_PORT_STATUS_LINK_AUTO |
+			AR8216_PORT_STATUS_FLOW_CONTROL);
 	}
 }
 
 static void
 ar8216_init_port(struct ar8xxx_priv *priv, int port)
 {
+	pr_err("%s\n", __PRETTY_FUNCTION__);
+
 	__ar8216_init_port(priv, port, ar8xxx_has_gige(priv),
 			   chip_is_ar8316(priv));
 }
@@ -1046,6 +1060,9 @@ ar8236_setup_port(struct ar8xxx_priv *priv, int port, u32 members)
 {
 	u32 egress, ingress;
 	u32 pvid;
+	u32 t;
+
+	pr_err("%s\n", __PRETTY_FUNCTION__);
 
 	if (priv->vlan) {
 		pvid = priv->vlan_id[priv->pvid[port]];
@@ -1077,11 +1094,19 @@ ar8236_setup_port(struct ar8xxx_priv *priv, int port, u32 members)
 		   AR8236_PORT_VLAN2_MEMBER,
 		   (ingress << AR8236_PORT_VLAN2_VLAN_MODE_S) |
 		   (members << AR8236_PORT_VLAN2_MEMBER_S));
+
+	t = ar8xxx_read(priv, AR8216_REG_PORT_CTRL(port));
+	pr_err("Port %i control register: %llx\n", port, t);
+
+	t = ar8xxx_read(priv, AR8216_REG_PORT_STATUS(port));
+	pr_err("Port %i status register: %llx\n", port, t);
 }
 
 static void
 ar8236_init_globals(struct ar8xxx_priv *priv)
 {
+	pr_err("%s\n", __PRETTY_FUNCTION__);
+
 	/* enable jumbo frames */
 	ar8xxx_rmw(priv, AR8216_REG_GLOBAL_CTRL,
 		   AR8316_GCTRL_MTU, 9018 + 8 + 2);
@@ -1368,6 +1393,9 @@ ar8xxx_sw_hw_apply(struct switch_dev *dev)
 	const struct ar8xxx_chip *chip = priv->chip;
 	u8 portmask[AR8X16_MAX_PORTS];
 	int i, j;
+	u32 t;
+
+	pr_err("%s\n", __PRETTY_FUNCTION__);
 
 	mutex_lock(&priv->reg_mutex);
 	/* flush all vlan translation unit entries */
@@ -1416,6 +1444,13 @@ ar8xxx_sw_hw_apply(struct switch_dev *dev)
 		ar8xxx_set_age_time(priv, chip->reg_arl_ctrl);
 
 	mutex_unlock(&priv->reg_mutex);
+
+	t = ar8xxx_read(priv, 0x002c);
+	pr_err("ar8xxx_phy_init: 0x002c: %llx\n", t);
+
+	t = ar8xxx_read(priv, 0x0004);
+	pr_err("ar8xxx_phy_init: 0x0004: %llx\n", t);
+
 	return 0;
 }
 
