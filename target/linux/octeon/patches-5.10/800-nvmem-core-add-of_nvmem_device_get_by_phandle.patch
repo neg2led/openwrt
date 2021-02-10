@@ -1,0 +1,59 @@
+From b4899d5d97b42cf994970d36f00e5cb1af51702f Mon Sep 17 00:00:00 2001
+From: Stijn Tintel <stijn@linux-ipv6.be>
+Date: Wed, 21 Apr 2021 19:09:41 +0300
+Subject: [PATCH 1/5] nvmem: core: add of_nvmem_device_get_by_phandle()
+
+This will be used by the vsc848x PHY driver to read the SFP+ eeprom.
+
+Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
+---
+ drivers/nvmem/core.c           | 14 ++++++++++++++
+ include/linux/nvmem-consumer.h |  7 +++++++
+ 2 files changed, 21 insertions(+)
+
+--- a/drivers/nvmem/core.c
++++ b/drivers/nvmem/core.c
+@@ -868,6 +868,20 @@ struct nvmem_device *of_nvmem_device_get
+ 	return nvmem;
+ }
+ EXPORT_SYMBOL_GPL(of_nvmem_device_get);
++
++/**
++ * of_nvmem_device_get_by_phandle() - Get nvmem device by a phandle
++ *
++ * @np: Device tree node of the nvmem device.
++ *
++ * Return: ERR_PTR() on error or a valid pointer to a struct nvmem_device
++ * on success.
++ */
++struct nvmem_device *of_nvmem_device_get_by_phandle(struct device_node* np)
++{
++	return __nvmem_device_get(np, device_match_of_node);
++}
++EXPORT_SYMBOL_GPL(of_nvmem_device_get_by_phandle);
+ #endif
+ 
+ /**
+--- a/include/linux/nvmem-consumer.h
++++ b/include/linux/nvmem-consumer.h
+@@ -228,6 +228,7 @@ struct nvmem_cell *of_nvmem_cell_get(str
+ 				     const char *id);
+ struct nvmem_device *of_nvmem_device_get(struct device_node *np,
+ 					 const char *name);
++struct nvmem_device *of_nvmem_device_get_by_phandle(struct device_node* np);
+ #else
+ static inline struct nvmem_cell *of_nvmem_cell_get(struct device_node *np,
+ 						   const char *id)
+@@ -240,6 +241,12 @@ static inline struct nvmem_device *of_nv
+ {
+ 	return ERR_PTR(-EOPNOTSUPP);
+ }
++
++static inline struct nvmem_device
++*of_nvmem_device_get_by_phandle(struct device_node* np)
++{
++	return ERR_PTR(-EOPNOTSUPP);
++}
+ #endif /* CONFIG_NVMEM && CONFIG_OF */
+ 
+ #endif  /* ifndef _LINUX_NVMEM_CONSUMER_H */

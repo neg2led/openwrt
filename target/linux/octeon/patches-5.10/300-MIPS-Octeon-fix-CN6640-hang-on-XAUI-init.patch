@@ -1,0 +1,29 @@
+From 8ecd40e17c16d997e0a031dfaea229b1bb906ec1 Mon Sep 17 00:00:00 2001
+From: Stijn Tintel <stijn@linux-ipv6.be>
+Date: Mon, 19 Apr 2021 01:09:56 +0300
+Subject: [PATCH 4/5] MIPS: Octeon: fix CN6640 hang on XAUI init
+
+Some CN66XX series Octeon II chips seem to hang if a reset is issued on
+XAUI initialization. Avoid the hang by disabling the reset.
+
+Tested on SNIC10E.
+
+Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
+---
+ arch/mips/cavium-octeon/executive/cvmx-helper-xaui.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+--- a/arch/mips/cavium-octeon/executive/cvmx-helper-xaui.c
++++ b/arch/mips/cavium-octeon/executive/cvmx-helper-xaui.c
+@@ -156,8 +156,9 @@ int __cvmx_helper_xaui_enable(int interf
+ 	xauiCtl.u64 = cvmx_read_csr(CVMX_PCSXX_CONTROL1_REG(interface));
+ 	xauiCtl.s.lo_pwr = 0;
+ 
+-	/* Issuing a reset here seems to hang some CN68XX chips. */
+-	if (!OCTEON_IS_MODEL(OCTEON_CN68XX_PASS1_X) &&
++	/* Issuing a reset here seems to hang some CN66XX/CN68XX chips. */
++	if (!OCTEON_IS_MODEL(OCTEON_CN66XX) &&
++	    !OCTEON_IS_MODEL(OCTEON_CN68XX_PASS1_X) &&
+ 	    !OCTEON_IS_MODEL(OCTEON_CN68XX_PASS2_X))
+ 		xauiCtl.s.reset = 1;
+ 

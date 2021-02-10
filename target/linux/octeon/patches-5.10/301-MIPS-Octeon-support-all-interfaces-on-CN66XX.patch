@@ -1,0 +1,27 @@
+From 2334bd3f8627cf712fcba61aa22c8169b2326e50 Mon Sep 17 00:00:00 2001
+From: Stijn Tintel <stijn@linux-ipv6.be>
+Date: Mon, 19 Apr 2021 02:00:16 +0300
+Subject: [PATCH 5/5] MIPS: Octeon: support all interfaces on CN66XX
+
+CN66XX_PASS1_0 has 7 interfaces, other revisions have 8 interfaces.
+
+Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
+---
+ arch/mips/cavium-octeon/executive/cvmx-helper.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/arch/mips/cavium-octeon/executive/cvmx-helper.c
++++ b/arch/mips/cavium-octeon/executive/cvmx-helper.c
+@@ -61,6 +61,12 @@ int cvmx_helper_get_number_of_interfaces
+ {
+ 	if (OCTEON_IS_MODEL(OCTEON_CN68XX))
+ 		return 9;
++	if (OCTEON_IS_MODEL(OCTEON_CN66XX)) {
++		if (OCTEON_IS_MODEL(OCTEON_CN66XX_PASS1_0))
++			return 7;
++		else
++			return 8;
++	}
+ 	if (OCTEON_IS_MODEL(OCTEON_CN56XX) || OCTEON_IS_MODEL(OCTEON_CN52XX))
+ 		return 4;
+ 	if (OCTEON_IS_MODEL(OCTEON_CN7XXX))

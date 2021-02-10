@@ -1,0 +1,40 @@
+From c59d03f70e739eb7fec976f86fff7dd12968b3fc Mon Sep 17 00:00:00 2001
+From: Leonid Rosenboim <lrosenboim@caviumnetworks.com>
+Date: Fri, 13 Feb 2015 15:04:26 +0530
+Subject: [PATCH 2/5] netdev/phy/of: Handle nexus Ethernet PHY devices
+
+Some multi-phy devices have resources that are global between all of the
+PHYs on the same device such as the Vitesse vsc8488.  In this case each
+individual PHY is contained within a phy nexus device.
+
+Signed-off-by: Leonid Rosenboim <lrosenboim@caviumnetworks.com>
+Signed-off-by: Aaron Williams <aaron.williams@cavium.com>
+Signed-off-by: Abhishek Paliwal <abhishek.paliwal@aricent.com>
+[rebase on 5.10]
+Signed-off-by: Stijn Tintel <stijn@linux-ipv6.be>
+---
+ drivers/net/mdio/of_mdio.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/drivers/net/mdio/of_mdio.c
++++ b/drivers/net/mdio/of_mdio.c
+@@ -18,6 +18,7 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_mdio.h>
+ #include <linux/of_net.h>
++#include <linux/of_platform.h>
+ #include <linux/module.h>
+ 
+ #define DEFAULT_GPIO_RESET_DELAY	10	/* in microseconds */
+@@ -278,6 +279,11 @@ int of_mdiobus_register(struct mii_bus *
+ 
+ 	/* Loop over the child nodes and register a phy_device for each phy */
+ 	for_each_available_child_of_node(np, child) {
++		if (of_device_is_compatible(child, "ethernet-phy-nexus")) {
++			of_platform_device_create(child, NULL, &mdio->dev);
++			continue;
++		}
++
+ 		addr = of_mdio_parse_addr(&mdio->dev, child);
+ 		if (addr < 0) {
+ 			scanphys = true;

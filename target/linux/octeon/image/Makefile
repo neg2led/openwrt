@@ -62,6 +62,16 @@ define Device/ubnt_edgerouter-4
 endef
 TARGET_DEVICES += ubnt_edgerouter-4
 
+define Device/snic10e
+  DEVICE_VENDOR := Cavium
+  DEVICE_MODEL := snic10e
+  DEVICE_DTS := snic10e
+  DEVICE_PACKAGES += kmod-gpio-button-hotplug kmod-hwmon-tmp421 kmod-leds-gpio kmod-of-mdio kmod-sfp
+  KERNEL := kernel-bin | append-dtb-to-elf
+  KERNEL_DEPENDS := $$(wildcard $(DTS_DIR)/$(DEVICE_DTS).dts)
+endef
+
+TARGET_DEVICES += snic10e
 ERLITE_CMDLINE:=-mtdparts=phys_mapped_flash:512k(boot0)ro,512k(boot1)ro,64k(eeprom)ro root=/dev/sda2 rootfstype=squashfs,ext4 rootwait
 define Device/ubnt_edgerouter-lite
   DEVICE_VENDOR := Ubiquiti
