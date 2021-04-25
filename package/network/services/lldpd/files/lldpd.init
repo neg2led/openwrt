@@ -38,7 +38,13 @@ write_lldpd_conf()
 	for iface in $ifaces; do
 		local ifname=""
 		if network_get_device ifname "$iface" || [ -e "/sys/class/net/$iface" ]; then
-			append ifnames "${ifname:-$iface}" ","
+			if [ -d "/sys/class/net/$ifname/bridge/" ]; then
+				for brport in "/sys/class/net/$ifname/brif/"*; do
+					append ifnames "$(basename $brport)" ","
+				done
+			else
+				append ifnames "${ifname:-$iface}" ","
+			fi
 		fi
 	done
 
