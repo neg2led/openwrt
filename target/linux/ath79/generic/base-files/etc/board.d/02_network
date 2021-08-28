@@ -58,6 +58,10 @@ ath79_setup_interfaces()
 	pisen,wmb001n|\
 	pisen,wmm003n|\
 	siemens,ws-ap3610|\
+	sophos,ap55|\
+	sophos,ap55x|\
+	sophos,ap100|\
+	sophos,ap100x|\
 	tplink,cpe210-v2|\
 	tplink,cpe210-v3|\
 	tplink,cpe510-v2|\
@@ -548,7 +552,11 @@ ath79_setup_macs()
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary art 0x1002)" -2)
 		;;
 	engenius,ecb1200|\
-	engenius,ecb1750)
+	engenius,ecb1750|\
+	sophos,ap55|\
+	sophos,ap55x|\
+	sophos,ap100|\
+	sophos,ap100x)
 		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		label_mac=$lan_mac
 		;;

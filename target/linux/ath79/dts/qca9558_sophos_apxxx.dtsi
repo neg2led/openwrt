@@ -1,0 +1,146 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/*
+ * The hardware of this board family is most likely shared with other devices
+ * from other manufacturers. Edimax appear to be the actual OEM.
+ *
+ * Sophos use the same exact board for the AP55C/AP100C, and AP55/AP100.
+ * Yes, this means your AP55C is a 3x3 AP with a software lock, and your
+ * AP55 is an AP100 with one missing antenna pigtail.
+ *
+ * AP55 and AP55C boards have different physical layouts, but are logically
+ * almost identical. AP55/100 have a USB port which is DNF on the C models.
+ *
+ */
+
+#include "qca955x.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "Reset button";
+			linux,code = <KEY_RESTART>;
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+			debounce-interval = <60>;
+		};
+	};
+
+	watchdog {
+		compatible = "linux,wdt-gpio";
+		gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
+		hw_algo = "toggle";
+		hw_margin_ms = <300>;
+		always-running;
+	};
+};
+
+&pcie0 {
+	status = "okay";
+};
+
+&spi {
+	status = "okay";
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <25000000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot";
+				reg = <0x000000 0x040000>;
+				read-only;
+			};
+
+			partition@40000 {
+				label = "u-boot-env";
+				reg = <0x040000 0x010000>;
+				read-only;
+			};
+
+			art: partition@50000 {
+				label = "art";
+				reg = <0x050000 0x010000>;
+				read-only;
+			};
+
+			partition@60000 {
+				label = "astaro_stat_cfg";
+				reg = <0x060000 0x010000>;
+				read-only;
+			};
+
+			partition@70000 {
+				compatible = "denx,uimage";
+				label = "astaro_image";
+				reg = <0x070000 0xf70000>;
+			};
+
+			partition@fe000 {
+				label = "astaro_backup";
+				reg = <0xfe0000 0x010000>;
+				read-only;
+			};
+
+			partition@ff0000 {
+				label = "astaro_dyn_cfg";
+				reg = <0xff0000 0x010000>;
+				read-only;
+			};
+
+		};
+	};
+};
+
+&mdio0 {
+	status = "okay";
+
+	phy4: ethernet-phy@4 {
+		reg = <4>;
+		eee-broken-100tx;
+		eee-broken-1000t;
+	};
+};
+
+&eth0 {
+	status = "okay";
+
+	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cell-names = "mac-address";
+	phy-handle = <&phy4>;
+
+	gmac_config: gmac-config {
+		device = <&gmac>;
+
+		rgmii-enabled = <1>;
+	};
+};
+
+&wmac {
+	status = "okay";
+
+	mtd-cal-data = <&art 0x1000>;
+	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cell-names = "mac-address";
+	mac-address-increment = <(-2)>;
+};
+
+&art {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_art_0: macaddr@0 {
+		reg = <0x0 0x6>;
+	};
+};
