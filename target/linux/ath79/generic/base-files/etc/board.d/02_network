@@ -552,11 +552,7 @@ ath79_setup_macs()
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary art 0x1002)" -2)
 		;;
 	engenius,ecb1200|\
-	engenius,ecb1750|\
-	sophos,ap55|\
-	sophos,ap55x|\
-	sophos,ap100|\
-	sophos,ap100x)
+	engenius,ecb1750)
 		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		label_mac=$lan_mac
 		;;

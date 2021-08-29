@@ -19,6 +19,14 @@
 #include <dt-bindings/input/input.h>
 
 / {
+	aliases {
+		led-boot = &status_green;
+		led-failsafe = &status_red;
+		led-running = &status_green;
+		led-upgrade = &status_red;
+		label-mac-device = &eth0;
+	};
+
 	keys {
 		compatible = "gpio-keys";
 
@@ -29,6 +37,22 @@
 			debounce-interval = <60>;
 		};
 	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		status_green: status_green {
+			label = "green:status";
+			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
+		status_red: status_red {
+			label = "red:status";
+			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
+		};
+	};
+
 
 	watchdog {
 		compatible = "linux,wdt-gpio";
@@ -74,7 +98,7 @@
 				read-only;
 			};
 
-			partition@60000 {
+			config: partition@60000 {
 				label = "config";
 				reg = <0x060000 0x010000>;
 				read-only;
@@ -103,14 +127,23 @@
 &eth0 {
 	status = "okay";
 
+	pll-data = <0xa6000000 0xa0000101 0xa0001313>;
+
 	nvmem-cells = <&macaddr_config_201a>;
 	nvmem-cell-names = "mac-address";
 
+	phy-mode = "rgmii";
 	phy-handle = <&phy4>;
 
 	gmac_config: gmac-config {
 		device = <&gmac>;
+
 		rgmii-enabled = <1>;
+
+		rxdv-delay = <3>;
+		rxd-delay = <3>;
+		txen-delay = <3>;
+		txd-delay = <3>;
 	};
 };
 
@@ -130,7 +163,6 @@
 	macaddr_art_5006: macaddr@5006 {
 		reg = <0x5006 0x6>;
 	};
-
 };
 
 &config {
