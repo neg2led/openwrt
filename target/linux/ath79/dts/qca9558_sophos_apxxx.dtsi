@@ -75,35 +75,23 @@
 			};
 
 			partition@60000 {
-				label = "astaro_stat_cfg";
+				label = "config";
 				reg = <0x060000 0x010000>;
 				read-only;
 			};
 
 			partition@70000 {
 				compatible = "denx,uimage";
-				label = "astaro_image";
-				reg = <0x070000 0xf70000>;
+				label = "firmware";
+				reg = <0x070000 0xf90000>;
 			};
-
-			partition@fe000 {
-				label = "astaro_backup";
-				reg = <0xfe0000 0x010000>;
-				read-only;
-			};
-
-			partition@ff0000 {
-				label = "astaro_dyn_cfg";
-				reg = <0xff0000 0x010000>;
-				read-only;
-			};
-
 		};
 	};
 };
 
 &mdio0 {
 	status = "okay";
+	phy-mask = <0x10>;
 
 	phy4: ethernet-phy@4 {
 		reg = <4>;
@@ -115,13 +103,13 @@
 &eth0 {
 	status = "okay";
 
-	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cells = <&macaddr_config_201a>;
 	nvmem-cell-names = "mac-address";
+
 	phy-handle = <&phy4>;
 
 	gmac_config: gmac-config {
 		device = <&gmac>;
-
 		rgmii-enabled = <1>;
 	};
 };
@@ -130,9 +118,8 @@
 	status = "okay";
 
 	mtd-cal-data = <&art 0x1000>;
-	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cells = <&macaddr_config_2004>;
 	nvmem-cell-names = "mac-address";
-	mac-address-increment = <(-2)>;
 };
 
 &art {
@@ -140,7 +127,22 @@
 	#address-cells = <1>;
 	#size-cells = <1>;
 
-	macaddr_art_0: macaddr@0 {
-		reg = <0x0 0x6>;
+	macaddr_art_5006: macaddr@5006 {
+		reg = <0x5006 0x6>;
+	};
+
+};
+
+&config {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_config_2004: macaddr@2004 {
+		reg = <0x2004 0x6>;
+	};
+
+	macaddr_config_201a: macaddr@201a {
+		reg = <0x201a 0x6>;
 	};
 };
