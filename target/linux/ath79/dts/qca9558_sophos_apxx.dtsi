@@ -132,7 +132,7 @@
 	nvmem-cells = <&macaddr_config_201a>;
 	nvmem-cell-names = "mac-address";
 
-	phy-mode = "rgmii";
+	phy-mode = "rgmii-id";
 	phy-handle = <&phy4>;
 
 	gmac_config: gmac-config {
