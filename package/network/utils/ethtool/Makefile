@@ -25,34 +25,41 @@ PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/ethtool
+define Package/ethtool/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=Display or change ethernet card settings
   URL:=http://www.kernel.org/pub/software/network/ethtool/
+endef
+
+define Package/ethtool
+$(call Package/ethtool/Default)
   VARIANT:=tiny
 endef
 
 define Package/ethtool-full
-  $(Package/ethtool)
+$(call Package/ethtool/Default)
   TITLE += (full)
   VARIANT:=full
   PROVIDES:=ethtool
-  CONFLICTS:=ethtool
   DEPENDS:=+libmnl
 endef
 
 define Package/ethtool/description
  ethtool is a small utility for examining and tuning your ethernet-based
- network interface
+ network interface.
 endef
 
-Package/ethtool-full/description:=$(Package/ethtool/description)
+define Package/ethtool-full/description
+$(call Package/ethtool/description)
+
+  This is a variant with prettyprint and netlink support.
+endef
 
 ifeq ($(BUILD_VARIANT),full)
-CONFIGURE_ARGS += --enable-netlink --enable-pretty-dump
+  CONFIGURE_ARGS += --enable-netlink --enable-pretty-dump
 else
-CONFIGURE_ARGS += --disable-netlink --disable-pretty-dump
+  CONFIGURE_ARGS += --disable-netlink --disable-pretty-dump
 endif
 
 define Package/ethtool/install
@@ -60,7 +67,9 @@ define Package/ethtool/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ethtool $(1)/usr/sbin
 endef
 
-Package/ethtool-full/install=$(Package/ethtool/install)
+define Package/ethtool-full/install
+$(call Package/ethtool/install,$(1))
+endef
 
 $(eval $(call BuildPackage,ethtool))
 $(eval $(call BuildPackage,ethtool-full))
