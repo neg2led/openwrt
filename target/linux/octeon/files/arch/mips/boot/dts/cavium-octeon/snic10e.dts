@@ -93,14 +93,19 @@
 				compatible = "ti,tmp421";
 				reg = <0x4c>;
 			};
-			sfp0: eeprom@50 {
+			sfp1eeprom: eeprom@50 {
 				compatible = "atmel,24c01";
 				reg = <0x50>;
 			};
-			tlv-eeprom@53 {
+			eeprom: tlv-eeprom@53 {
 				compatible = "atmel,24c256";
 				reg = <0x53>;
 				pagesize = <64>;
+
+				macaddr_eeprom_3c: macaddr@3c {
+					reg = <0x3c 0x6>;
+				}
+
 			};
 		};
 
@@ -119,7 +124,7 @@
 			 */
 			clock-frequency = <30000>;
 
-			sfp1: eeprom@50 {
+			sfp1eeprom: eeprom@50 {
 				compatible = "atmel,24c01";
 				reg = <0x50>;
 			};
@@ -141,7 +146,7 @@
 			#size-cells = <0>;
 			reg = <0x11800 0x00001800 0x0 0x40>;
 
-			mphy0: ethernet-phy-nexus@A {
+			mphyA: ethernet-phy-nexus@A {
 				reg = <0>;
 				/* The Vitesse VSC8488 is a dual-PHY where
 				 * some of the configuration is common across
@@ -252,7 +257,7 @@
 					 * maximum (-16mA).  The default is
 					 * 0b000000.
 					 */
-					/*vitesse,txout_driver_ctrl2 = <0x1300>;*/
+					// vitesse,txout_driver_ctrl2 = <0x1300>;
 
 					/* DC_AGC_LOS_CONFIG1:
 					 *   15: Suppress_Coarse_Adj_on_LOS_Clear
@@ -369,7 +374,7 @@
 					 * the PHY in the proper mode for
 					 * copper or optical.
 					 */
-					sfp-eeprom = <&sfp0>;
+					sfp-eeprom = <&sfp0eeprom>;
 				};
 
 				phy1: ethernet-phy@1 {
@@ -468,7 +473,7 @@
 					 * maximum (-16mA).  The default is
 					 * 0b000000.
 					 */
-					/*txout_driver_ctrl2 = <0x1300>;*/
+					// txout_driver_ctrl2 = <0x1300>;
 
 					/* DC_AGC_LOS_CONFIG1:
 					 *   15: Suppress_Coarse_Adj_on_LOS_Clear
@@ -585,7 +590,7 @@
 					 * the PHY in the proper mode for
 					 * copper or optical.
 					 */
-					sfp-eeprom = <&sfp1>;
+					sfp-eeprom = <&sfp1eeprom>;
 				};
 			};
 		};
@@ -600,12 +605,14 @@
 				compatible = "cavium,octeon-3860-pip-interface";
 				#address-cells = <1>;
 				#size-cells = <0>;
-				reg = <0>; /* interface */
+				reg = <0>; /* interface number */
 
 				ethernet@0 {
 					compatible = "cavium,octeon-3860-pip-port";
 					reg = <0x0>; /* Port */
-					local-mac-address = [ 00 00 00 00 00 00 ];
+					// local-mac-address = [ 00 00 00 00 00 00 ];
+					nvmem-cells = <&macaddr_eeprom_3c>;
+					nvmem-cell-names = "mac-address";
 					phy-handle = <&phy0>;
 				};
 			};
@@ -613,12 +620,15 @@
 				compatible = "cavium,octeon-3860-pip-interface";
 				#address-cells = <1>;
 				#size-cells = <0>;
-				reg = <1>; /* interface */
+				reg = <1>; /* interface number */
 
 				ethernet@0 {
 					compatible = "cavium,octeon-3860-pip-port";
 					reg = <0x0>; /* Port */
-					local-mac-address = [ 00 00 00 00 00 00 ];
+					// local-mac-address = [ 00 00 00 00 00 00 ];
+					nvmem-cells = <&macaddr_eeprom_3c>;
+					nvmem-cell-names = "mac-address";
+					mac-address-increment = <(1)>;
 					phy-handle = <&phy1>;
 				};
 			};
@@ -704,13 +714,13 @@
 				#size-cells = <1>;
 
 				partition@0 {
-					label = "bootloader";
-					reg = <0x0 0x1c0000>;
+					label = "bootloaders";
+					reg = <0x0 0x300000>;
 					read-only;
 				};
-				partition@1c0000 {
-					label = "kernel";
-					reg = <0x1c0000 0x63e000>;
+				partition@300000 {
+					label = "boot_app";
+					reg = <0x300000 0x400000>;
 				};
 				partition@7fe000 {
 					label = "environment";
