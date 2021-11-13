@@ -13,24 +13,18 @@
 	interrupt-parent = <&ciu>;
 
 	aliases {
-		led-boot = &led_top_green;
-		led-failsafe = &led_bottom_green;
-		led-running = &led_top_green;
-		led-upgrade = &led_bottom_green;
+		led-boot = &led_status_green;
+		led-failsafe = &led_status_green;
+		led-running = &led_status_green;
+		led-upgrade = &led_status_green;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		led_top_green: top_green {
-			label = "green:top";
+		led_status_green: status_green {
+			label = "green:status";
 			gpios = <&gpio 2 GPIO_ACTIVE_HIGH>;
-			default-state = "keep";
-		};
-
-		led_bottom_green: bottom_green {
-			label = "green:bottom";
-			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
 			default-state = "keep";
 		};
 	};
@@ -93,10 +87,17 @@
 				compatible = "ti,tmp421";
 				reg = <0x4c>;
 			};
-			sfp1eeprom: eeprom@50 {
+
+			sfp0eeprom: eeprom@50 {
 				compatible = "atmel,24c01";
 				reg = <0x50>;
 			};
+
+			sfp0alerts: eeprom@51 {
+				compatible = "atmel,24c01";
+				reg = <0x51>;
+			};
+
 			eeprom: tlv-eeprom@53 {
 				compatible = "atmel,24c256";
 				reg = <0x53>;
@@ -104,8 +105,7 @@
 
 				macaddr_eeprom_3c: macaddr@3c {
 					reg = <0x3c 0x6>;
-				}
-
+				};
 			};
 		};
 
@@ -124,10 +124,16 @@
 			 */
 			clock-frequency = <30000>;
 
-			sfp1eeprom: eeprom@50 {
+			sfp0eeprom: eeprom@50 {
 				compatible = "atmel,24c01";
 				reg = <0x50>;
 			};
+
+			sfp0alerts: eeprom@51 {
+				compatible = "atmel,24c01";
+				reg = <0x51>;
+			};
+
 			gpio1: gpio@20 {
 				reg = <0x20>;
 				compatible = "nxp,pca9554";
@@ -146,7 +152,7 @@
 			#size-cells = <0>;
 			reg = <0x11800 0x00001800 0x0 0x40>;
 
-			mphyA: ethernet-phy-nexus@A {
+			mphy0: ethernet-phy-nexus@0 {
 				reg = <0>;
 				/* The Vitesse VSC8488 is a dual-PHY where
 				 * some of the configuration is common across
@@ -157,9 +163,12 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 				ranges;
+				// gpio-controller;
+				// #gpio-cells = <12>;
 
 				/* Hardware reset signal */
-				reset = <&gpio 17 GPIO_ACTIVE_HIGH>;
+				resets = <&gpio 17 GPIO_ACTIVE_HIGH>;
+				reset-names = "phy";
 
 				phy0: ethernet-phy@0 {
 					/* Absolute address */
@@ -167,6 +176,7 @@
 					compatible = "vitesse,vsc8488", "ethernet-phy-ieee802.3-c45";
 					interrupt-parent = <&gpio>;
 					interrupts = <13 8>;
+					max-speed = <10000>;
 
 					mod_abs = <0>;
 					/* TX Fault GPIO line */
@@ -374,7 +384,8 @@
 					 * the PHY in the proper mode for
 					 * copper or optical.
 					 */
-					sfp-eeprom = <&sfp0eeprom>;
+					sfp-eeprom = <&sfp1eeprom>;
+					sfp = <&sfp1>;
 				};
 
 				phy1: ethernet-phy@1 {
@@ -383,6 +394,7 @@
 					compatible = "vitesse,vsc8488", "ethernet-phy-ieee802.3-c45";
 					interrupt-parent = <&gpio>;
 					interrupts = <13 8>;
+					max-speed = <10000>;
 
 					mod_abs = <9>;
 					/* TX Fault GPIO line */
@@ -590,7 +602,8 @@
 					 * the PHY in the proper mode for
 					 * copper or optical.
 					 */
-					sfp-eeprom = <&sfp1eeprom>;
+					sfp-eeprom = <&sfp0eeprom>;
+					sfp = <&sfp0>;
 				};
 			};
 		};
@@ -607,7 +620,7 @@
 				#size-cells = <0>;
 				reg = <0>; /* interface number */
 
-				ethernet@0 {
+				eth0: ethernet@0 {
 					compatible = "cavium,octeon-3860-pip-port";
 					reg = <0x0>; /* Port */
 					// local-mac-address = [ 00 00 00 00 00 00 ];
@@ -616,13 +629,14 @@
 					phy-handle = <&phy0>;
 				};
 			};
+
 			interface@1 {
 				compatible = "cavium,octeon-3860-pip-interface";
 				#address-cells = <1>;
 				#size-cells = <0>;
 				reg = <1>; /* interface number */
 
-				ethernet@0 {
+				eth1: ethernet@0 {
 					compatible = "cavium,octeon-3860-pip-port";
 					reg = <0x0>; /* Port */
 					// local-mac-address = [ 00 00 00 00 00 00 ];
@@ -720,11 +734,11 @@
 				};
 				partition@300000 {
 					label = "boot_app";
-					reg = <0x300000 0x400000>;
+					reg = <0x300000 0x4fe000>;
 				};
 				partition@7fe000 {
 					label = "environment";
-					reg = <0x7fe0000 0x2000>;
+					reg = <0x7fe000 0x2000>;
 					read-only;
 				};
 			};
@@ -808,6 +822,22 @@
 				 */
 				nand-bus-width = <8>;
 			};
+		};
+
+		sfp0: sfp-slot@0 {
+			compatible = "sff,sfp";
+			i2c-bus = <&twsi1>;
+			// mod-def0-gpios = <&mphy0 0 GPIO_ACTIVE_HIGH>;
+			// tx-fault-gpios = <&mphy0 1 GPIO_ACTIVE_HIGH>;
+			// tx-disable-gpios = <&mphy0 4 GPIO_ACTIVE_HIGH>;
+		};
+
+		sfp1: sfp-slot@1 {
+			compatible = "sff,sfp";
+			i2c-bus = <&twsi0>;
+			// mod-def0-gpios = <&mphy0 9 GPIO_ACTIVE_HIGH>;
+			// tx-fault-gpios = <&mphy0 8 GPIO_ACTIVE_HIGH>;
+			// tx-disable-gpios = <&mphy0 10 GPIO_ACTIVE_HIGH>;
 		};
 	};
  };
