@@ -83,7 +83,7 @@
 			 */
 			clock-frequency = <30000>;
 
-			tmp@4c {
+			temp0: tmp421@4c {
 				compatible = "ti,tmp421";
 				reg = <0x4c>;
 			};
@@ -124,26 +124,31 @@
 			 */
 			clock-frequency = <30000>;
 
-			sfp0eeprom: eeprom@50 {
+			sfp1eeprom: eeprom@50 {
 				compatible = "atmel,24c01";
 				reg = <0x50>;
 			};
 
-			sfp0alerts: eeprom@51 {
+			sfp1alerts: eeprom@51 {
 				compatible = "atmel,24c01";
 				reg = <0x51>;
 			};
+		};
 
-			gpio1: gpio@20 {
-				reg = <0x20>;
-				compatible = "nxp,pca9554";
-				gpio-controller;
-				#gpio-cells = <2>;
-				interrupt-parent = <&gpio>;
-				interrupt = <13 2>; /* OCTEON GPIO 13, falling edge */
-				#interrupt-cells = <1>;
-			};
+		sfp0: sfp-slot@0 {
+			compatible = "sff,sfp";
+			i2c-bus = <&twsi0>;
+			// mod-def0-gpios = <&mphy0 0 GPIO_ACTIVE_HIGH>;
+			// tx-fault-gpios = <&mphy0 1 GPIO_ACTIVE_HIGH>;
+			// tx-disable-gpios = <&mphy0 4 GPIO_ACTIVE_HIGH>;
+		};
 
+		sfp1: sfp-slot@1 {
+			compatible = "sff,sfp";
+			i2c-bus = <&twsi1>;
+			// mod-def0-gpios = <&mphy0 9 GPIO_ACTIVE_HIGH>;
+			// tx-fault-gpios = <&mphy0 8 GPIO_ACTIVE_HIGH>;
+			// tx-disable-gpios = <&mphy0 10 GPIO_ACTIVE_HIGH>;
 		};
 
 		smi0: mdio@1180000001800 {
@@ -178,10 +183,14 @@
 					interrupts = <13 8>;
 					max-speed = <10000>;
 
+					/* Module Absent GPIO line */
+					mod_abs-parent = <&gpio>;
 					mod_abs = <0>;
 					/* TX Fault GPIO line */
+					tx_fault-parent = <&gpio>;
 					tx_fault = <1>;
 					/* GPIO that enables output */
+					txon-parent = <&gpio>;
 					txon = <4>;
 					/* INT A GPIO output */
 					inta = <5>;
@@ -384,8 +393,53 @@
 					 * the PHY in the proper mode for
 					 * copper or optical.
 					 */
-					sfp-eeprom = <&sfp1eeprom>;
-					sfp = <&sfp1>;
+					sfp-eeprom = <&sfp0eeprom>;
+					sfp = <&sfp0>;
+
+					/* LED configuration */
+					/* The LEDs are wired up as follows:
+					 *
+					 * The channel 1 (port 0, bottom port)
+					 * top LED is configured with
+					 * GPIOs 7 and 9 with GPIO 7 configured
+					 * to always be high and GPIO 9
+					 * configured to indicate link.
+					 * Link uses the internal PHY signal
+					 * HW_LOS.
+					 *
+					 * The channel 1 (port 0, bottom port)
+					 * bottom LED is used for RX activity.
+					 * GPIOs 2 and 11 are connected together
+					 * so either TX or RX activity are
+					 * supported.  In order to have the LED
+					 * go dark when there is no link,
+					 * GPIO 2 will pull the signal low.
+					 * GPIO 11 will pull the signal
+					 * low when there is traffic activity.
+					 *
+					 * The channel 0 (port 1, top port)
+					 * top LED is configured with GPIOs 1
+					 * and 3 with GPIO 1 configured to
+					 * always be high and GPIO 3 configured
+					 * to show the link using the internal
+					 * CH0_HW_LOS signal (0x55).
+					 *
+					 * The channel 0 (port 1, top port)
+					 * bottom LED is configured with GPIOs
+					 * 0 and 5 connected together and
+					 * indicates RX activity.  GPIO 0 is
+					 * configured to route the internal
+					 * CH0_HW_LOSN signal (0x54) so that
+					 * the signal is pulled low when there
+					 * is no link and GPIO 5 is configured
+					 * to blink when there is RX activity.
+					 */
+					vitesse,c45-reg-init =
+						/* Invert LOPC error signal */
+						<0x1 0xA201 0 0x0004>;
+					/* Note that the GPIOs are global so
+					 * don't init a second time.
+					 */
 				};
 
 				phy1: ethernet-phy@1 {
@@ -396,10 +450,14 @@
 					interrupts = <13 8>;
 					max-speed = <10000>;
 
+					/* Module Absent GPIO line */
+					mod_abs-parent = <&gpio>;
 					mod_abs = <9>;
 					/* TX Fault GPIO line */
+					tx_fault-parent = <&gpio>;
 					tx_fault = <8>;
 					/* GPIO that enables output */
+					txon-parent = <&gpio>;
 					txon = <10>;
 					/* INT A GPIO output */
 					inta = <5>;
@@ -602,8 +660,8 @@
 					 * the PHY in the proper mode for
 					 * copper or optical.
 					 */
-					sfp-eeprom = <&sfp0eeprom>;
-					sfp = <&sfp0>;
+					sfp-eeprom = <&sfp1eeprom>;
+					sfp = <&sfp1>;
 				};
 			};
 		};
@@ -626,7 +684,7 @@
 					// local-mac-address = [ 00 00 00 00 00 00 ];
 					nvmem-cells = <&macaddr_eeprom_3c>;
 					nvmem-cell-names = "mac-address";
-					phy-handle = <&phy0>;
+					phy-handle = <&phy1>;
 				};
 			};
 
@@ -643,7 +701,7 @@
 					nvmem-cells = <&macaddr_eeprom_3c>;
 					nvmem-cell-names = "mac-address";
 					mac-address-increment = <(1)>;
-					phy-handle = <&phy1>;
+					phy-handle = <&phy0>;
 				};
 			};
 		};
@@ -732,20 +790,22 @@
 					reg = <0x0 0x300000>;
 					read-only;
 				};
+
 				partition@300000 {
 					label = "boot_app";
-					reg = <0x300000 0x4fe000>;
+					reg = <0x300000 0x4f0000>;
 				};
-				partition@7fe000 {
+
+				partition@7f0000 {
 					label = "environment";
-					reg = <0x7fe000 0x2000>;
+					reg = <0x7f0000 0x10000>;
 					read-only;
 				};
 			};
 
 			psram0: psram@2,0 {
 				compatible = "micron,mt45w1mw16pd";
-				reg = <2 0x20 0x20>, <2 0 0x20>;
+				reg = <0x02 0x20 0x20>, <0x02 0x00 0x20>;
 			};
 		};
 
@@ -754,6 +814,7 @@
 			reg = <0x11800 0x00000100 0x0 0x8>;
 			interrupts = <0 63>;
 		};
+
 		dma1: dma-engine@1180000000108 {
 			compatible = "cavium,octeon-5750-bootbus-dma";
 			reg = <0x11800 0x00000108 0x0 0x8>;
@@ -776,7 +837,7 @@
 				nand-ecc-mode = "soft_bch";
 
 				/* Number of bytes of data to perform ECC over */
-				nand-ecc-size = <1024>;
+				nand-ecc-size = <512>;
 
 				/* nand-ecc-size and nand-ecc-bytes are
 				 * calculated based on the error management
@@ -815,29 +876,13 @@
 				 * extended ECC support cannot be used for
 				 * booting purposes.
 				 */
-				nand-ecc-bytes = <42>;
+				nand-ecc-bytes = <7>;
 
 				/* With of NAND on bus, OCTEON supports both 8
 				 * and 16-bits
 				 */
 				nand-bus-width = <8>;
 			};
-		};
-
-		sfp0: sfp-slot@0 {
-			compatible = "sff,sfp";
-			i2c-bus = <&twsi1>;
-			// mod-def0-gpios = <&mphy0 0 GPIO_ACTIVE_HIGH>;
-			// tx-fault-gpios = <&mphy0 1 GPIO_ACTIVE_HIGH>;
-			// tx-disable-gpios = <&mphy0 4 GPIO_ACTIVE_HIGH>;
-		};
-
-		sfp1: sfp-slot@1 {
-			compatible = "sff,sfp";
-			i2c-bus = <&twsi0>;
-			// mod-def0-gpios = <&mphy0 9 GPIO_ACTIVE_HIGH>;
-			// tx-fault-gpios = <&mphy0 8 GPIO_ACTIVE_HIGH>;
-			// tx-disable-gpios = <&mphy0 10 GPIO_ACTIVE_HIGH>;
 		};
 	};
  };
