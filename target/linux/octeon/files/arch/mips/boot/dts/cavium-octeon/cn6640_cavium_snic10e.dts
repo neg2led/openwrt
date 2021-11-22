@@ -50,6 +50,7 @@
 		gpio: gpio-controller@1070000000800 {
 			#gpio-cells = <2>;
 			compatible = "cavium,octeon-3860-gpio";
+			#address-cells = <0>;
 			reg = <0x10700 0x00000800 0x0 0x100>;
 			gpio-controller;
 			/* Interrupts are specified by two parts:
@@ -99,7 +100,9 @@
 			};
 
 			eeprom: tlv-eeprom@53 {
-				compatible = "atmel,24c256";
+				compatible = "atmel,24c256", "nvmem-cells";
+				#address-cells = <1>;
+				#size-cells = <1>;
 				reg = <0x53>;
 				pagesize = <64>;
 
@@ -834,10 +837,12 @@
 				reg = <1>;
 
 				/* soft_bch is used to support multi-bit ECC */
-				nand-ecc-mode = "soft_bch";
+				nand-ecc-mode = "soft";
+				nand-ecc-algo = "bch";
 
 				/* Number of bytes of data to perform ECC over */
 				nand-ecc-size = <512>;
+				nand-ecc-step-size = <512>;
 
 				/* nand-ecc-size and nand-ecc-bytes are
 				 * calculated based on the error management
@@ -876,23 +881,24 @@
 				 * extended ECC support cannot be used for
 				 * booting purposes.
 				 */
-				nand-ecc-bytes = <7>;
+				nand-ecc-bytes = <3>;
+				nand-ecc-strength = <1>;
 
 				/* With of NAND on bus, OCTEON supports both 8
 				 * and 16-bits
 				 */
 				nand-bus-width = <8>;
 
-				partition@0 {
+				/* partition@0 {
 					label = "ubifs-kernel";
 					reg = <0x0 0x8000000>;
 					read-only;
-				};
+				}; */
 
-				partition@8000000 {
+				/* partition@1 {
 					label = "ubifs";
 					reg = <0x8000000 0x38000000>;
-				};
+				}; */
 			};
 		};
 	};

@@ -7,7 +7,7 @@ include $(TOPDIR)/rules.mk
 ARCH:=mips64
 BOARD:=octeon
 BOARDNAME:=Cavium Networks Octeon
-FEATURES:=squashfs ramdisk pci usb
+FEATURES:=squashfs ramdisk pci pcie usb nand ubifs
 CPU_TYPE:=octeonplus
 
 KERNEL_PATCHVER:=5.4
