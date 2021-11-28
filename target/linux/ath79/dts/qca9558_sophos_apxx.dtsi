@@ -53,15 +53,18 @@
 		};
 	};
 
+	gpio-export {
+		compatible = "gpio-export";
 
-	watchdog {
-		compatible = "linux,wdt-gpio";
-		gpios = <&gpio 11 GPIO_ACTIVE_LOW>;
-		hw_algo = "toggle";
-		hw_margin_ms = <300>;
-		always-running;
+		gpio_usb_power: gpio_usb_power {
+			status = "disabled";
+			gpio-export,name = "power:usb";
+			gpio-export,output = <1>;
+			gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
+		};
 	};
 };
+
 
 &pcie0 {
 	status = "okay";

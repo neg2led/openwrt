@@ -7,6 +7,10 @@
 	model = "Sophos AP55";
 };
 
+&gpio_usb_power {
+	status = "okay";
+};
+
 &usb_phy0 {
 	status = "okay";
 };
