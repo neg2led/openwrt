@@ -8,17 +8,17 @@
  * Free Software Foundation;  either version 2 of the  License, or (at your
  * option) any later version.
  */
-
+#include <dt-bindings/leds/common.h>
 /include/ "fsl/p1020si-pre.dtsi"
 / {
 	model = "Aerohive HiveAP-330";
 	compatible = "aerohive,hiveap-330";
 
 	aliases {
-		led-boot = &tricolor_green;
-		led-failsafe = &tricolor_red;
-		led-running = &tricolor_green;
-		led-upgrade = &tricolor_red;
+		led-boot = &led_status_blue;
+		led-failsafe = &led_status_red;
+		led-running = &led_status_green;
+		led-upgrade = &led_status_blue;
 		label-mac-device = &enet0;
 	};
 
@@ -119,29 +119,46 @@
 				reg = <0x29>;
 			};
 
-			lp5521@32 {
+			led-controller@32 {
+				#address-cells = <1>;
+				#size-cells = <0>;
 				compatible = "national,lp5521";
 				reg = <0x32>;
 				clock-mode = /bits/ 8 <2>;
-				tricolor_red: chan0 {
-					chan-name = "hiveap-330:red:tricolor0";
-					led-cur = /bits/ 8 <0x2f>;
-					max-cur = /bits/ 8 <0x5f>;
-				};
-				tricolor_green:chan1 {
-					chan-name = "hiveap-330:green:tricolor0";
-					led-cur = /bits/ 8 <0x2f>;
-					max-cur = /bits/ 8 <0x5f>;
-				};
-				chan2 {
-					chan-name = "hiveap-330:blue:tricolor0";
-					led-cur = /bits/ 8 <0x2f>;
-					max-cur = /bits/ 8 <0x5f>;
+
+				led_status: multi-led@3 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0x3>;
+					color = <LED_COLOR_ID_RGB>;
+					function = LED_FUNCTION_STATUS;
+					linux,default-trigger = "none";
+
+					led_status_red: led@0 {
+						led-cur = /bits/ 8 <47>;
+						max-cur = /bits/ 8 <95>;
+						reg = <0x0>;
+						color = <LED_COLOR_ID_RED>;
+					};
+
+					led_status_green: led@1 {
+						led-cur = /bits/ 8 <47>;
+						max-cur = /bits/ 8 <95>;
+						reg = <0x1>;
+						color = <LED_COLOR_ID_GREEN>;
+					};
+
+					led_status_blue: led@2 {
+						led-cur = /bits/ 8 <47>;
+						max-cur = /bits/ 8 <95>;
+						reg = <0x2>;
+						color = <LED_COLOR_ID_BLUE>;
+					};
 				};
 			};
 
 			/* Most likely SoC boot config */
-			eeprom@51 {
+			eeprom0: eeprom@51 {
 				compatible = "eeprom";
 				reg = <0x51>;
 			};
@@ -191,12 +208,12 @@
 		gpio0: gpio-controller@fc00 {
 		};
 
-		usb@22000 {
+		usb0: usb@22000 {
 			phy_type = "ulpi";
 			dr_mode = "host";
 		};
 
-		usb@23000 {
+		usb1: usb@23000 {
 			status = "disabled";
 		};
 	};
@@ -222,7 +239,7 @@
 		      0x1000000 0x0 0x00000000 0x0 0xffc20000 0x0 0x10000>;
 		pcie@0 {
 			ranges = <0x2000000 0x0 0xc0000000
-			      0x2000000 0x0 0xc0000000
+				  0x2000000 0x0 0xc0000000
 				  0x0 0x20000000
 
 				  0x1000000 0x0 0x0
