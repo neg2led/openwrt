@@ -53,24 +53,13 @@
 				};
 
 				partition@40000 {
-					reg = <0x40000 0x40000>;
-					label = "initrd";
-				};
-
-				partition@80000 {
-					reg = <0x80000 0x27c0000>;
-					label = "rootfs";
-				};
-
-				partition@2840000 {
-					reg = <0x2840000 0x800000>;
+					reg = <0x40000 0xbc0000>;
 					label = "kernel";
 				};
 
-				partition@3040000 {
-					reg = <0x3040000 0xec0000>;
-					label = "stock-jffs2";
-					read-only;
+				partition@c00000 {
+					reg = <0xc00000 0x3300000>;
+					label = "rootfs";
 				};
 
 				hwinfo: partition@3f00000 {
@@ -103,7 +92,7 @@
 				};
 
 				firmware@0 {
-					reg = <0x0 0x3040000>;
+					reg = <0x0 0x3f00000>;
 					label = "firmware";
 				};
 			};
@@ -120,40 +109,35 @@
 			};
 
 			led-controller@32 {
-				#address-cells = <1>;
-				#size-cells = <0>;
 				compatible = "national,lp5521";
 				reg = <0x32>;
+				label = "lp5521";
 				clock-mode = /bits/ 8 <2>;
+				#address-cells = <1>;
+				#size-cells = <0>;
 
-				led_status: multi-led@3 {
-					#address-cells = <1>;
-					#size-cells = <0>;
-					reg = <0x3>;
-					color = <LED_COLOR_ID_RGB>;
-					function = LED_FUNCTION_STATUS;
-					linux,default-trigger = "none";
+				led_status_red: chan@0 {
+					chan-name = "status:red";
+					led-cur = /bits/ 8 <47>;
+					max-cur = /bits/ 8 <95>;
+					reg = <0x0>;
+					color = <LED_COLOR_ID_RED>;
+				};
 
-					led_status_red: led@0 {
-						led-cur = /bits/ 8 <47>;
-						max-cur = /bits/ 8 <95>;
-						reg = <0x0>;
-						color = <LED_COLOR_ID_RED>;
-					};
+				led_status_green: chan@1 {
+					chan-name = "status:green";
+					led-cur = /bits/ 8 <47>;
+					max-cur = /bits/ 8 <95>;
+					reg = <0x1>;
+					color = <LED_COLOR_ID_GREEN>;
+				};
 
-					led_status_green: led@1 {
-						led-cur = /bits/ 8 <47>;
-						max-cur = /bits/ 8 <95>;
-						reg = <0x1>;
-						color = <LED_COLOR_ID_GREEN>;
-					};
-
-					led_status_blue: led@2 {
-						led-cur = /bits/ 8 <47>;
-						max-cur = /bits/ 8 <95>;
-						reg = <0x2>;
-						color = <LED_COLOR_ID_BLUE>;
-					};
+				led_status_blue: chan@2 {
+					chan-name = "status:blue";
+					led-cur = /bits/ 8 <47>;
+					max-cur = /bits/ 8 <95>;
+					reg = <0x2>;
+					color = <LED_COLOR_ID_BLUE>;
 				};
 			};
 
@@ -221,7 +205,7 @@
 	pci0: pcie@ffe09000 {
 		reg = <0x0 0xffe09000 0x0 0x1000>;
 		ranges = <0x2000000 0x0 0xa0000000 0x0 0xa0000000 0x0 0x20000000
-			0x1000000 0x0 0x00000000 0x0 0xffc30000 0x0 0x10000>;
+			  0x1000000 0x0 0x00000000 0x0 0xffc30000 0x0 0x10000>;
 		pcie@0 {
 			ranges = <0x2000000 0x0 0xa0000000
 				  0x2000000 0x0 0xa0000000
@@ -236,7 +220,7 @@
 	pci1: pcie@ffe0a000 {
 		reg = <0x0 0xffe0a000 0x0 0x1000>;
 		ranges = <0x2000000 0x0 0xc0000000 0x0 0xc0000000 0x0 0x20000000
-		      0x1000000 0x0 0x00000000 0x0 0xffc20000 0x0 0x10000>;
+			  0x1000000 0x0 0x00000000 0x0 0xffc20000 0x0 0x10000>;
 		pcie@0 {
 			ranges = <0x2000000 0x0 0xc0000000
 				  0x2000000 0x0 0xc0000000
