@@ -74,6 +74,7 @@ tplink,ad7200)
 	ucidef_add_switch "switch0" \
 		"2:lan:1" "3:lan:2" "4:lan:3" "5:lan:4" "6@eth1" "1:wan" "0@eth0"
 	;;
+sophos,apx530 |\
 ubnt,unifi-ac-hd)
 	ucidef_set_interface_lan "eth0 eth1"
 	;;

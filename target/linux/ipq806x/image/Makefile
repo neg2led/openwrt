@@ -393,6 +393,21 @@ define Device/qcom_ipq8064-db149
 endef
 TARGET_DEVICES += qcom_ipq8064-db149
 
+define Device/sophos_apx530
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := Sophos
+	DEVICE_MODEL := APX530
+	SOC := qcom-ipq8064
+	DEVICE_DTS := qcom-ipq8064-sophos-apx530
+	KERNEL_INSTALL := 1
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := apx530
+	DEVICE_PACKAGES := ath10k-firmware-qca99x0-ct kmod-i2c-gpio kmod-tpm-i2c-atmel kmod-mdio-gpio kmod-of-mdio
+endef
+TARGET_DEVICES += sophos_apx530
+
 define Device/tplink_ad7200
 	$(call Device/TpSafeImage)
 	DEVICE_VENDOR := TP-Link
