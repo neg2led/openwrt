@@ -239,3 +239,18 @@ define Device/ubnt_unifi-6-lr-ubootmod
   ARTIFACT/bl31-uboot.fip := bl31-uboot ubnt_unifi-6-lr
 endef
 TARGET_DEVICES += ubnt_unifi-6-lr-ubootmod
+
+define Device/ubnt_unifi-udr
+  DEVICE_VENDOR := Ubiquiti
+  DEVICE_MODEL := UniFi UDR
+  DEVICE_DTS_CONFIG := udr@1
+  DEVICE_DTS := mt7622-ubnt-unifi-udr
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-ata-ahci-mtk kmod-btmtkuart kmod-usb3
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS_SUFFIX := -uImage.itb
+  KERNEL_INITRAMFS := kernel-bin | gzip | fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGES += rootfs.bin
+  IMAGE/rootfs.bin := append-rootfs
+endef
+TARGET_DEVICES += ubnt_unifi-udr

@@ -1,0 +1,644 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/dts-v1/;
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
+
+#include "mt7622.dtsi"
+#include "mt6380.dtsi"
+
+/ {
+	model = "Ubiquiti UniFi Dream Router";
+	compatible = "ubnt,unifi-udr", "mediatek,mt7622";
+
+	aliases {
+		// led-boot = &led_blue;
+		// led-failsafe = &led_blue;
+		// led-running = &led_blue;
+		// led-upgrade = &led_blue;
+		label-mac-device = &gmac0;
+		serial0 = &uart0;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+		bootargs = "console=ttyS0,115200n1 loglevel=8 swiotlb=512 earlyprintk";
+	};
+
+	cpus {
+		cpu@0 {
+			proc-supply = <&mt6380_vcpu_reg>;
+			sram-supply = <&mt6380_vm_reg>;
+		};
+
+		cpu@1 {
+			proc-supply = <&mt6380_vcpu_reg>;
+			sram-supply = <&mt6380_vm_reg>;
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		reset {
+			label = "reset";
+			linux,code = <KEY_RESTART>;
+			gpios = <&pio 0 GPIO_ACTIVE_LOW>; /* GPIO_A */
+		};
+	};
+
+	memory {
+		reg = <0 0x40000000 0 0x3f000000>;
+	};
+
+	lcm_backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm 0 4000>;
+		brightness-levels = <0 1 2 3 4 5 6 7 8 9 10>;
+		default-brightness-level = <8>;
+		power-supply = <&reg_3p3v>;
+	};
+
+	reg_1p8v: regulator-1p8v {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-1.8V";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+	};
+
+	reg_3p3v: regulator-3p3v {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-3.3V";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-boot-on;
+		regulator-always-on;
+	};
+
+	reg_5v: regulator-5v {
+		compatible = "regulator-fixed";
+		regulator-name = "fixed-5V";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		regulator-boot-on;
+		regulator-always-on;
+	};
+
+	rtkgsw: rtkgsw@0 {
+		compatible = "mediatek,rtk-gsw";
+		mediatek,ethsys = <&ethsys>;
+		mediatek,mdio = <&mdio>;
+		mediatek,reset-pin = <&pio 54 0>;
+	};
+
+	poe_dev_0: bcm59121@20 {
+		compatible = "bcm59121";
+		reg = <0x20>;
+		bus = <0>;
+	};
+
+	ubnthal {
+		compatible = "udapi, ubnthal";
+		poe {
+			ports {
+				port@2 {
+					reg = <2>;
+					dev = <&poe_dev_0 1>;
+				};
+				port@3 {
+					reg = <3>;
+					dev = <&poe_dev_0 0>;
+				};
+			};
+		};
+	};
+
+};
+
+&bch {
+	status = "disabled";
+};
+
+&btif {
+	status = "okay";
+};
+
+&efuse {
+	svs_calibration: calib@180 {
+		reg = <0x180 0x8>;
+	};
+};
+
+&eth {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&eth_pins>;
+
+	gmac0: mac@0 {
+		compatible = "mediatek,eth-mac";
+		reg = <0>;
+		phy-mode = "sgmii";
+
+		fixed-link {
+			speed = <1000>;
+			full-duplex;
+			pause;
+		};
+	};
+
+	mdio: mdio-bus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		mt7530: switch@0 {
+			compatible = "mediatek,mt7530";
+			reg = <0>;
+			reset-gpios = <&pio 54 0>;
+
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+
+				port@0 {
+					reg = <0>;
+					label = "lan0";
+				};
+
+				port@1 {
+					reg = <1>;
+					label = "lan1";
+				};
+
+				port@2 {
+					reg = <2>;
+					label = "lan2";
+				};
+
+				port@3 {
+					reg = <3>;
+					label = "lan3";
+				};
+
+				port@4 {
+					reg = <4>;
+					label = "wan";
+				};
+
+				port@5 {
+					reg = <6>;
+					label = "deprecated";
+					phy-mode = "sgmii";
+
+					fixed-link {
+						speed = <2500>;
+						full-duplex;
+						pause;
+					};
+				};
+
+				port@6 {
+					reg = <6>;
+					label = "cpu";
+					ethernet = <&gmac0>;
+					phy-mode = "sgmii";
+
+					fixed-link {
+						speed = <2500>;
+						full-duplex;
+						pause;
+					};
+				};
+
+				/*
+				 * This is the PPD port for hwnat, which is
+				 * not yet supported in mainline.
+				 */
+				/* port@7 {
+				 	reg = <7>;
+				 	label = "ppd";
+				 	phy-mode = "gmii";
+
+				 	fixed-link {
+				 		speed = <1000>;
+				 		full-duplex;
+				 		pause;
+				 	};
+				}; */
+			};
+		};
+	};
+};
+
+&i2c0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c0_pins>;
+	status = "okay";
+
+	bcm59121@20 {
+		compatible = "bcm59121";
+		reg = <0x20>;
+		en-gpio = <479>; /* GPIO70 */
+		/* irq-gpio = <478>; */
+		/* 2-channels-per-port; */
+	};
+
+	rtc@30 {
+		compatible = "s35390a";
+		reg = <0x30>;
+	};
+
+	led_thunder@38 {
+		compatible = "ui,thunder_grb";
+		reg = <0x38>;
+		num_leds = <8>;
+		/* default_color = <0x00ff00>; */
+		skip-init-reset = <1>;
+		reset-gpios = <&pio 22 0>; /* GPIO_B */
+		boot-gpios = <&pio 102 0>; /* GPIO_E */
+	};
+
+	led-controller@40 {
+		compatible = "ubnt,ledring";
+		reg = <0x40>;
+		num_leds = <8>;
+
+		enable-gpios = <&pio 56 0>; /* GPIO56 */
+	};
+
+	lm63: lm63@4c {
+		compatible = "national,lm63";
+		reg = <0x4c>;
+		tachometer-en;
+		pwm-active-low;
+	};
+};
+
+&i2c1 {
+	status = "okay";
+};
+
+&i2c2 {
+	status = "okay";
+};
+
+&mmc0 {
+	pinctrl-names = "default", "state_uhs";
+	pinctrl-0 = <&emmc_pins_default>;
+	pinctrl-1 = <&emmc_pins_uhs>;
+	status = "okay";
+	bus-width = <8>;
+	max-frequency = <50000000>;
+	cap-mmc-highspeed;
+	mmc-hs200-1_8v;
+	vmmc-supply = <&reg_3p3v>;
+	vqmmc-supply = <&reg_1p8v>;
+	non-removable;
+};
+
+&mmc1 {
+	pinctrl-names = "default", "state_uhs";
+	pinctrl-0 = <&sd0_pins_default>;
+	pinctrl-1 = <&sd0_pins_uhs>;
+	status = "okay";
+	bus-width = <4>;
+	max-frequency = <50000000>;
+	cap-sd-highspeed;
+	r_smpl = <1>;
+	cd-gpios = <&pio 81 GPIO_ACTIVE_LOW>;
+	vmmc-supply = <&reg_3p3v>;
+	vqmmc-supply = <&reg_3p3v>;
+	assigned-clocks = <&topckgen CLK_TOP_MSDC30_1_SEL>;
+	assigned-clock-parents = <&topckgen CLK_TOP_UNIV48M>;
+};
+
+&nor_flash {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	flash@0 {
+		compatible = "jedec,spi-nor";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		partition@0 {
+			label = "Preloader";
+			reg = <0x00000000 0x00040000>;
+		};
+		partition@1 {
+			label = "ATF";
+			reg = <0x00040000 0x00020000>;
+		};
+		partition@2 {
+			label = "u-boot";
+			reg = <0x00060000 0x00160000>;
+		};
+		partition@3 {
+			label = "u-boot-env";
+			reg = <0x001C0000 0x00010000>;
+		};
+		partition@4 {
+			label = "u-boot-env-2";
+			reg = <0x001D0000 0x00010000>;
+		};
+		factory: partition@5 {
+			label = "Factory";
+			reg = <0x001E0000 0x00040000>;
+		};
+		eeprom: partition@6 {
+			label = "EEPROM";
+			reg = <0x00220000 0x00010000>;
+		};
+		partition@7 {
+			label = "config";
+			reg = <0x00230000 0x005D0000>;
+		};
+	};
+};
+
+&pcie0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie0_pins>;
+	status = "okay";
+};
+
+&slot0 {
+	wifi@0,0 {
+		reg = <0x0 0 0 0 0>;
+		mediatek,mtd-eeprom = <&factory 0x20000>;
+		nvmem-cells = <&macaddr_eeprom_6>;
+		nvmem-cell-names = "mac-address";
+		ieee80211-freq-limit = <5000000 6000000>;
+	};
+};
+
+&pcie1 {
+	status = "disabled";
+};
+
+&pio {
+	i2s1_pins: i2s1-pins {
+		mux {
+			function = "i2s";
+			groups =  "i2s_out_mclk_bclk_ws",
+				  "i2s1_in_data",
+				  "i2s1_out_data";
+		};
+
+		conf {
+			pins = "I2S1_IN", "I2S1_OUT", "I2S_BCLK",
+			       "I2S_WS", "I2S_MCLK";
+			drive-strength = <12>;
+			bias-pull-down;
+		};
+	};
+
+	i2c0_pins: i2c0-pins {
+		mux {
+			function = "i2c";
+			groups =  "i2c0";
+		};
+	};
+
+	emmc_pins_default: emmc-pins-default {
+		mux {
+			function = "emmc", "emmc_rst";
+			groups = "emmc";
+		};
+
+		/* "NDL0","NDL1","NDL2","NDL3","NDL4","NDL5","NDL6","NDL7",
+		 * "NRB","NCLE" pins are used as DAT0,DAT1,DAT2,DAT3,DAT4,
+		 * DAT5,DAT6,DAT7,CMD,CLK for eMMC respectively
+		 */
+		conf-cmd-dat {
+			pins = "NDL0", "NDL1", "NDL2",
+			       "NDL3", "NDL4", "NDL5",
+			       "NDL6", "NDL7", "NRB";
+			input-enable;
+			bias-pull-up;
+		};
+
+		conf-clk {
+			pins = "NCLE";
+			bias-pull-down;
+		};
+	};
+
+	emmc_pins_uhs: emmc-pins-uhs {
+		mux {
+			function = "emmc";
+			groups = "emmc";
+		};
+
+		conf-cmd-dat {
+			pins = "NDL0", "NDL1", "NDL2",
+			       "NDL3", "NDL4", "NDL5",
+			       "NDL6", "NDL7", "NRB";
+			input-enable;
+			drive-strength = <4>;
+			bias-pull-up;
+		};
+
+		conf-clk {
+			pins = "NCLE";
+			drive-strength = <4>;
+			bias-pull-down;
+		};
+	};
+
+	sd0_pins_default: sd0-pins-default {
+		mux {
+			function = "sd";
+			groups = "sd_0";
+		};
+
+		/* "I2S2_OUT, "I2S4_IN"", "I2S3_IN", "I2S2_IN",
+		 *  "I2S4_OUT", "I2S3_OUT" are used as DAT0, DAT1,
+		 *  DAT2, DAT3, CMD, CLK for SD respectively.
+		 */
+		conf-cmd-data {
+			pins = "I2S2_OUT", "I2S4_IN", "I2S3_IN",
+			       "I2S2_IN","I2S4_OUT";
+			input-enable;
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+		conf-clk {
+			pins = "I2S3_OUT";
+			drive-strength = <12>;
+			bias-pull-down;
+		};
+		conf-cd {
+			pins = "TXD3";
+			bias-pull-up;
+		};
+	};
+
+	sd0_pins_uhs: sd0-pins-uhs {
+		mux {
+			function = "sd";
+			groups = "sd_0";
+		};
+
+		conf-cmd-data {
+			pins = "I2S2_OUT", "I2S4_IN", "I2S3_IN",
+			       "I2S2_IN","I2S4_OUT";
+			input-enable;
+			bias-pull-up;
+		};
+
+		conf-clk {
+			pins = "I2S3_OUT";
+			bias-pull-down;
+		};
+	};
+
+	pmic_bus_pins: pmic-bus-pins {
+		mux {
+			function = "pmic";
+			groups = "pmic_bus";
+		};
+	};
+
+	epa_elna_pins: epa-elna-pins {
+		mux {
+			function = "antsel";
+			groups = "antsel0", "antsel1", "antsel2",
+				 "antsel3", "antsel5", "antsel6",
+				 "antsel7", "antsel8", "antsel9";
+		};
+	};
+
+	eth_pins: eth-pins {
+		mux {
+			function = "eth";
+			groups = "mdc_mdio", "rgmii_via_gmac2";
+		};
+	};
+
+	uart0_pins: uart0-pins {
+		mux {
+			function = "uart";
+			groups = "uart0_0_tx_rx" ;
+		};
+	};
+
+	uart3_pins: uart3-pins {
+		mux {
+			function = "uart";
+			groups = "uart3_1_tx_rx",
+				 "uart3_1_rts_cts";
+		};
+	};
+
+	spic1_pins: spic1-pins {
+		mux {
+			function = "spi";
+			groups = "spic1_1";
+		};
+	};
+
+	pcie0_pins: pcie0-pins {
+		mux {
+			function = "pcie";
+			groups = "pcie0_pad_perst",
+				 "pcie0_1_waken",
+				 "pcie0_1_clkreq";
+		};
+	};
+
+	pwm0_pins: pwm0_pins {
+		mux {
+			function = "pwm";
+			groups = "pwm_ch1_2"; /* Display backlight */
+			output-low;
+		};
+	};
+};
+
+&pwm {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pwm0_pins>;
+};
+
+&pwrap {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pmic_bus_pins>;
+
+	status = "okay";
+};
+
+&sata {
+	status = "okay";
+};
+
+&sata_phy {
+	status = "okay";
+};
+
+&spi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&spic1_pins>;
+	status = "okay";
+	st7735fb: display@0 {
+		compatible = "jianda,jd-t18003-t01", "sitronix,st7735r";
+		reg = <0>;
+		spi-max-frequency = <25000000>;
+		dc-gpios = <&pio 77 GPIO_ACTIVE_HIGH>; // gpio 77
+		reset-gpios = <&pio 85 GPIO_ACTIVE_HIGH>;
+		backlight = <&lcm_backlight>;
+	};
+};
+
+&ssusb {
+	vusb33-supply = <&reg_3p3v>;
+	vbus-supply = <&reg_5v>;
+	status = "okay";
+};
+
+&u3phy {
+	status = "okay";
+};
+
+&thermal {
+	vproc-supply = <&mt6380_vcpu_reg>;
+};
+
+&uart0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart0_pins>;
+	status = "okay";
+};
+
+&uart3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart3_pins>;
+	status = "okay";
+};
+
+&wmac {
+	pinctrl-names = "default";
+	pinctrl-0 = <&epa_elna_pins>;
+	mediatek,mtd-eeprom = <&factory 0x0>;
+	status = "okay";
+};
+
+&gmac0 {
+	nvmem-cells = <&macaddr_eeprom_0>;
+	nvmem-cell-names = "mac-address";
+};
+
+&eeprom {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	macaddr_eeprom_0: macaddr@0 {
+		reg = <0x0 0x6>;
+	};
+
+	macaddr_eeprom_6: macaddr@6 {
+		reg = <0x6 0x6>;
+	};
+};
