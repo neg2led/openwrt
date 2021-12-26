@@ -94,6 +94,7 @@
 				firmware@0 {
 					reg = <0x0 0x3f00000>;
 					label = "firmware";
+					compatible = "denx,uimage";
 				};
 			};
 		};
@@ -102,7 +103,14 @@
 	board_soc: soc: soc@ffe00000 {
 		ranges = <0x0 0x0 0xffe00000 0x100000>;
 
-		i2c@3100 {
+		i2c0: i2c@3000 {
+			rtc: rtc@68 {
+				compatible = "dallas,ds1339";
+				reg = <0x68>;
+			};
+		};
+
+		i2c1: i2c@3100 {
 			tpm@29 {
 				compatible = "atmel,at97sc3204t";
 				reg = <0x29>;
