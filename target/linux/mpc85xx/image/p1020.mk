@@ -1,16 +1,16 @@
 define Device/aerohive_hiveap-330
   DEVICE_VENDOR := Aerohive
   DEVICE_MODEL := HiveAP-330
-  DEVICE_PACKAGES := kmod-tpm-i2c-atmel
+  DEVICE_PACKAGES := kmod-tpm-i2c-atmel kmod-mtd-rw uboot-envtools
   BLOCKSIZE := 128k
   KERNEL := kernel-bin | uImage none
-  KERNEL_SIZE := 12032k
-  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux-initramfs | uImage none
+  KERNEL_SIZE := 16m
+  KERNEL_INITRAMFS := kernel-bin | uImage none
   IMAGES := fdt.bin sysupgrade.bin
   IMAGE/fdt.bin := append-dtb
-  IMAGE/sysupgrade.bin := append-dtb | pad-to 256k | check-size 256k | \
-  append-kernel | pad-to 12288k | check-size 12288k | \
-  append-rootfs | pad-rootfs | append-metadata
+  IMAGE/sysupgrade.bin := append-dtb | pad-to 256k | append-kernel | \
+    append-rootfs | pad-rootfs | append-metadata
+  DEVICE_COMPAT_VERSION := 2.0
 endef
 TARGET_DEVICES += aerohive_hiveap-330
 
