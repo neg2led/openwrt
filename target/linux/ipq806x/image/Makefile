@@ -399,11 +399,10 @@ define Device/sophos_apx530
 	DEVICE_VENDOR := Sophos
 	DEVICE_MODEL := APX530
 	SOC := qcom-ipq8064
-	DEVICE_DTS := qcom-ipq8064-sophos-apx530
-	KERNEL_INSTALL := 1
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	BOARD_NAME := apx530
+	SUPPORTED_DEVICES := apx530
+	DEVICE_DTS_CONFIG := config@2
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0-ct kmod-i2c-gpio kmod-tpm-i2c-atmel kmod-mdio-gpio kmod-of-mdio
 endef
 TARGET_DEVICES += sophos_apx530
