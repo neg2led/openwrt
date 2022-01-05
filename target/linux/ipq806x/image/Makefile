@@ -402,6 +402,7 @@ define Device/sophos_apx530
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	SUPPORTED_DEVICES := apx530
+	KERNEL = kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb
 	DEVICE_DTS_CONFIG := config@2
 	DEVICE_PACKAGES := ath10k-firmware-qca99x0-ct kmod-i2c-gpio kmod-tpm-i2c-atmel kmod-mdio-gpio kmod-of-mdio
 endef
