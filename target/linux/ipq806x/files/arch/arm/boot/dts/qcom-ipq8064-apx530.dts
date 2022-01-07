@@ -14,6 +14,7 @@
 		led-running = &led_status_green;
 		led-upgrade = &led_status_red;
 
+		mdio-gpio0 = &mdio0;
 		serial0 = &gsbi4_serial;
 		serial1 = &gsbi2_serial;
 		ethernet0 = &gmac3;
@@ -22,11 +23,11 @@
 
 	chosen {
 		stdout-path = "serial0:115200n8";
-		bootargs = "ubi.mtd=rootfs loglevel=8 earlycon=msm_serial_dm,0x16340000 earlyprink=ttyMSM0,115200 console=ttyMSM0,115200";
+		bootargs = "ubi.mtd=rootfs loglevel=8 console=ttyMSM0,115200 earlycon";
 	};
 
-	memory@40000000 {
-		reg = <0x40000000 0x40000000>;
+	memory@42000000 {
+		reg = <0x42000000 0x3e000000>;
 		device_type = "memory";
 	};
 
@@ -43,6 +44,7 @@
 
 	leds {
 		compatible = "gpio-leds";
+
 		pinctrl-0 = <&leds_pins>;
 		pinctrl-names = "default";
 
@@ -74,47 +76,83 @@
 	};
 };
 
+
+&qcom_pinmux {
+
+	spi_pins: spi_pins {
+		mux {
+			pins = "gpio18", "gpio19", "gpio21";
+			function = "gsbi5";
+			drive-strength = <10>;
+			bias-none;
+		};
+		cs {
+			pins = "gpio20";
+			drive-strength = <12>;
+		};
+	};
+
+	hci_uart_pins: hci_uart_pins {
+		mux {
+			pins = "gpio22", "gpio23", "gpio24", "gpio25" ;
+			function = "gsbi2";
+			drive-strength = <12>;
+			bias-disable;
+		};
+	};
+
+	leds_pins: leds_pins {
+		mux {
+			pins = "gpio27", "gpio28";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+	};
+
+	button_pins: button_pins {
+		mux {
+			pins = "gpio60";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-up;
+		};
+	};
+
+	i2c7_pins: i2c7_pins {
+		mux {
+			pins = "gpio8", "gpio9";
+			function = "gsbi7";
+			drive-strength = <12>;
+			bias-disable;
+		};
+	};
+};
+
 &adm_dma {
 	status = "okay";
 };
 
 &CPU_SPC {
-	status = "okay";
-};
-
-&gmac2 {
-	status = "okay";
-
-	qcom,id = <2>;
-	mdiobus = <&mdio0>;
-
-	local-mac-address = [00 00 00 00 00 00];
-
-	phy-mode = "sgmii";
-	phy-handle = <&phy1>;
-};
-
-&gmac3 {
-	status = "okay";
-
-	qcom,id = <3>;
-	mdiobus = <&mdio0>;
-
-	local-mac-address = [00 00 00 00 00 00];
-
-	phy-mode = "sgmii";
-	phy-handle = <&phy2>;
+	status = "disabled";
 };
 
 &gsbi2 {
-	qcom,mode = <GSBI_PROT_I2C_UART>;
+	qcom,mode = <GSBI_PROT_UART_W_FC>;
 	status = "okay";
 };
 
 &gsbi2_serial {
-	pinctrl-0 = <&hs_uart_pins>;
+	status = "okay";
+	pinctrl-0 = <&hci_uart_pins>;
 	pinctrl-names = "default";
-	status = "disabled";
+
+	qcom,rx-crci = <14>;
+	qcom,tx-crci = <4>;
+	dmas = <&adm_dma 7>,
+	       <&adm_dma 8>;
+	dma-names = "tx", "rx";
 };
 
 &gsbi4 {
@@ -136,7 +174,7 @@
 	status = "okay";
 	qcom,mode = <GSBI_PROT_SPI>;
 
-	spi4: spi@1a280000 {
+	gsbi5_spi: spi@1a280000 {
 		status = "okay";
 		spi-max-frequency = <50000000>;
 
@@ -145,7 +183,7 @@
 
 		cs-gpios = <&qcom_pinmux 20 GPIO_ACTIVE_HIGH>;
 
-		norflash: mx25u3235f@0 {
+		flash0: mx25u3235f@0 {
 			compatible = "jedec,spi-nor";
 			#address-cells = <1>;
 			#size-cells = <1>;
@@ -243,7 +281,7 @@
 
 &gsbi7_i2c {
 	status = "okay";
-	pinctrl-0 = <&i2c_pins>;
+	pinctrl-0 = <&i2c7_pins>;
 	pinctrl-names = "default";
 
 	tpm: tpm@29 {
@@ -251,6 +289,99 @@
 		compatible = "atmel,at97sc3204t";
 		reset-gpio = <&qcom_pinmux 59 GPIO_ACTIVE_HIGH>;
 	};
+};
+
+&mdio0 {
+	status = "okay";
+
+	pinctrl-0 = <&mdio0_pins>;
+	pinctrl-names = "default";
+
+	phy1: ethernet-phy@1 {
+		reg = <1>;
+	};
+
+	phy2: ethernet-phy@2 {
+		reg = <2>;
+	};
+};
+
+&gmac2 {
+	status = "okay";
+	compatible = "qcom,nss-gmac";
+
+	phy-handle = <&phy1>;
+	phy-mode = "sgmii";
+
+	qcom,id = <2>;
+	qcom,pcs-chanid = <2>;
+	qcom,phy-mdio-addr = <1>;
+	qcom,poll-required = <1>;
+	qcom,rgmii-delay = <0>;
+	qcom,emulation = <0>;
+	qcom,forced-speed = <1000>;
+	qcom,forced-duplex = <1>;
+	qcom,socver = <0>;
+	qcom,irq = <258>;
+	mdiobus = <&mdio0>;
+
+	local-mac-address = [00 00 00 00 00 00];
+};
+
+&gmac3 {
+	status = "okay";
+	compatible = "qcom,nss-gmac";
+
+	phy-handle = <&phy2>;
+	phy-mode = "sgmii";
+
+	qcom,id = <3>;
+	qcom,pcs-chanid = <3>;
+	qcom,phy-mdio-addr = <2>;
+	qcom,poll-required = <1>;
+	qcom,rgmii-delay = <0>;
+	qcom,emulation = <0>;
+	qcom,forced-speed = <1000>;
+	qcom,forced-duplex = <1>;
+	qcom,mmds-mask = <0>;
+	qcom,socver = <0>;
+	qcom,irq = <261>;
+	mdiobus = <&mdio0>;
+
+	local-mac-address = [00 00 00 00 00 00];
+};
+
+&nand_controller {
+	status = "okay";
+
+	pinctrl-0 = <&nand_pins>;
+	pinctrl-names = "default";
+
+	flash1: nand@0 {
+		reg = <0>;
+		compatible = "qcom,nandcs";
+
+		nand-bus-width = <8>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "rootfs";
+				reg = <0x0 0x20000000>;
+			};
+		};
+	};
+};
+
+&pcie0 {
+	status = "okay";
+};
+
+&pcie1 {
+	status = "okay";
 };
 
 &hs_phy_0 {
@@ -269,111 +400,21 @@
 	status = "disabled";
 };
 
-&mdio0 {
-	status = "okay";
-
-	pinctrl-0 = <&mdio0_pins>;
-	pinctrl-names = "default";
-
-	phy1: ethernet-phy@1 {
-		reg = <1>;
-	};
-
-	phy2: ethernet-phy@2 {
-		reg = <2>;
-	};
-};
-
-&nand_controller {
-	status = "okay";
-
-	pinctrl-0 = <&nand_pins>;
-	pinctrl-names = "default";
-
-	nand@0 {
-		reg = <0>;
-		compatible = "qcom,nandcs";
-
-		nand-bus-width = <8>;
-		nand-ecc-strength = <4>;
-
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
-
-			partition@0 {
-				label = "rootfs";
-				reg = <0x0 0x20000000>;
-			};
-		};
-	};
-};
-
-&pcie0 {
-	status = "okay";
-	perst-gpio = <&qcom_pinmux 3 0>;
-};
-
-&pcie1 {
-	status = "okay";
-	perst-gpio = <&qcom_pinmux 48 0>;
-};
-
 &rpm {
 	pinctrl-0 = <&i2c4_pins>;
 	pinctrl-names = "default";
 };
 
-&qcom_pinmux {
+&art {
+	compatible = "nvmem-cells";
+	#address-cells = <1>;
+	#size-cells = <1>;
 
-	spi_pins: spi_pins {
-		mux {
-			pins = "gpio18", "gpio19", "gpio21";
-			function = "gsbi5";
-			drive-strength = <10>;
-			bias-none;
-		};
-		cs {
-			pins = "gpio20";
-			drive-strength = <12>;
-		};
+	macaddr_art_0: macaddr@0 {
+		reg = <0x0 0x6>;
 	};
 
-	hs_uart_pins: hs_uart_pins {
-		mux {
-			pins = "gpio22", "gpio23", "gpio24", "gpio25" ;
-			function = "gsbi2";
-			drive-strength = <12>;
-			bias-disable;
-		};
-	};
-
-	leds_pins: leds_pins {
-		mux {
-			pins = "gpio27", "gpio28";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-pull-down;
-			output-low;
-		};
-	};
-
-	button_pins: button_pins {
-		mux {
-			pins = "gpio60";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-pull-up;
-		};
-	};
-
-	i2c_pins: i2c_pins {
-		mux {
-			pins = "gpio8", "gpio9";
-			function = "gsbi7";
-			drive-strength = <12>;
-			bias-disable;
-		};
+	macaddr_art_6: macaddr@6 {
+		reg = <0x6 0x6>;
 	};
 };

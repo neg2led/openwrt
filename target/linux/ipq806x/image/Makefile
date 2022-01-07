@@ -402,9 +402,13 @@ define Device/sophos_apx530
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	SUPPORTED_DEVICES := apx530
-	KERNEL = kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+	KERNEL_SIZE := 64m
+	KERNEL_NAME := zImage
+	KERNEL := kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb
 	DEVICE_DTS_CONFIG := config@2
-	DEVICE_PACKAGES := ath10k-firmware-qca99x0-ct kmod-i2c-gpio kmod-tpm-i2c-atmel kmod-mdio-gpio kmod-of-mdio
+	DEVICE_PACKAGES := -kmod-ata-ahci -kmod-ata-ahci-platform -kmod-usb-ohci -kmod-usb2 \
+		-kmod-usb-ledtrig-usbport -kmod-usb-phy-qcom-dwc3 -kmod-usb3 -kmod-usb-dwc3-qcom \
+		ath10k-firmware-qca99x0-ct kmod-tpm-i2c-atmel kmod-of-mdio
 endef
 TARGET_DEVICES += sophos_apx530
 
