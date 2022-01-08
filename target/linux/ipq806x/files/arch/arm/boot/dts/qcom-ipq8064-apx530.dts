@@ -168,6 +168,7 @@
 
 &gsbi4_serial {
 	status = "okay";
+	/* Bluetooth HCI UART port, CSR8811 */
 };
 
 &gsbi5 {
