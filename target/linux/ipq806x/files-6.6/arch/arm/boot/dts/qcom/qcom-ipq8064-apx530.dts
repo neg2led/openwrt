@@ -14,16 +14,15 @@
 		led-running = &led_status_green;
 		led-upgrade = &led_status_red;
 
-		mdio-gpio0 = &mdio0;
-		serial0 = &gsbi4_serial;
-		serial1 = &gsbi2_serial;
-		ethernet0 = &gmac3;
-		ethernet1 = &gmac2;
+		serial0 = &gsbi4_serial; /* ttyMSM0, console */
+		serial1 = &gsbi2_serial; /* ttyMSM1, bluetooth */
+		ethernet0 = &gmac2;
+		ethernet1 = &gmac3;
 	};
 
 	chosen {
 		stdout-path = "serial0:115200n8";
-		bootargs = "ubi.mtd=rootfs loglevel=8 console=ttyMSM0,115200 earlycon";
+		bootargs = "ubi.mtd=rootfs loglevel=8 earlycon=msm_serial_dm,0x16340000 earlyprink console=ttyMSM0,115200";
 	};
 
 	memory@42000000 {
@@ -68,17 +67,46 @@
 
 		reset {
 			label = "reset";
-			gpios = <&qcom_pinmux 60 GPIO_ACTIVE_LOW>;
+			gpios = <&qcom_pinmux 29 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 			debounce-interval = <60>;
 			wakeup-source;
 		};
 	};
+
+	gpio-export {
+		compatible = "gpio-export";
+
+		pinctrl-0 = <&gpio_pins>;
+		pinctrl-names = "default";
+
+		ble_reset: gpio_ble_reset {
+			gpio-export,name = "ble_reset";
+			gpio-export,output = <1>;
+			gpios = <&qcom_pinmux 31 GPIO_ACTIVE_LOW>;
+		};
+
+		ble_status: gpio_ble_status {
+			gpio-export,name = "ble_status";
+			gpio-export,output = <0>;
+			gpios = <&qcom_pinmux 32 GPIO_ACTIVE_HIGH>;
+		};
+
+		ble_active: gpio_ble_active {
+			gpio-export,name = "ble_status";
+			gpio-export,output = <0>;
+			gpios = <&qcom_pinmux 63 GPIO_ACTIVE_HIGH>;
+		};
+
+		poe_status: gpio_poe_status {
+			gpio-export,name = "poe_status";
+			gpio-export,output = <0>;
+			gpios = <&qcom_pinmux 15 GPIO_ACTIVE_LOW>;
+		};
+	};
 };
 
-
 &qcom_pinmux {
-
 	spi_pins: spi_pins {
 		mux {
 			pins = "gpio18", "gpio19", "gpio21";
@@ -86,6 +114,7 @@
 			drive-strength = <10>;
 			bias-none;
 		};
+
 		cs {
 			pins = "gpio20";
 			drive-strength = <12>;
@@ -94,10 +123,34 @@
 
 	hci_uart_pins: hci_uart_pins {
 		mux {
-			pins = "gpio22", "gpio23", "gpio24", "gpio25" ;
+			pins = "gpio22", "gpio23", "gpio24", "gpio25";
 			function = "gsbi2";
 			drive-strength = <12>;
 			bias-disable;
+		};
+	};
+
+	gpio_pins: gpio_pins {
+		ble_reset {
+			pins = "gpio31";
+			function = "gpio";
+			drive-strength = <12>;
+			bias-pull-down;
+			output-low;
+		};
+
+		ble_status {
+			pins = "gpio32", "gpio63", "gpio68";
+			function = "gpio";
+			drive-strength = <12>;
+			bias-disable;
+		};
+
+		poe_status {
+			pins = "gpio15";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
 		};
 	};
 
@@ -113,7 +166,7 @@
 
 	button_pins: button_pins {
 		mux {
-			pins = "gpio60";
+			pins = "gpio29";
 			function = "gpio";
 			drive-strength = <2>;
 			bias-pull-up;
@@ -316,7 +369,10 @@
 	phy-mode = "sgmii";
 	phy-handle = <&phy1>;
 
-	local-mac-address = [00 00 00 00 00 00];
+	// nvmem-cells = <&macaddr_art_0>;
+	// nvmem-cell-names = "mac-address";
+
+	local-mac-address = [00 00 00 00 00 00]; /* Set by U-Boot */
 };
 
 &gmac3 {
@@ -328,7 +384,10 @@
 	phy-mode = "sgmii";
 	phy-handle = <&phy2>;
 
-	local-mac-address = [00 00 00 00 00 00];
+	// nvmem-cells = <&macaddr_art_6>;
+	// nvmem-cell-names = "mac-address";
+
+	local-mac-address = [00 00 00 00 00 00]; /* Set by U-Boot */
 };
 
 &nand_controller {
@@ -400,5 +459,9 @@
 
 	macaddr_art_6: macaddr@6 {
 		reg = <0x6 0x6>;
+	};
+
+	macaddr_art_12: macaddr@12 {
+		reg = <0x12 0x6>;
 	};
 };

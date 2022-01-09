@@ -60,6 +60,7 @@ ipq806x_setup_interfaces()
 	ubnt,unifi-ac-hd)
 		ucidef_set_interface_lan "eth0 eth1"
 		;;
+	sophos,apx530 |\
 	meraki,mr42)
 		ucidef_set_interface_lan "eth0"
 		;;
