@@ -51,6 +51,7 @@ linksys,ea8500)
 meraki,mr42)
 	ucidef_set_interface_lan "eth0"
 	;;
+sophos,apx530 |\
 meraki,mr52)
 	ucidef_set_interfaces_lan_wan "eth0" "eth1"
 	;;
