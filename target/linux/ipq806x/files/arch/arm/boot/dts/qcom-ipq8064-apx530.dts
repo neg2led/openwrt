@@ -16,8 +16,8 @@
 
 		serial0 = &gsbi4_serial; /* ttyMSM0, console */
 		serial1 = &gsbi2_serial; /* ttyMSM1, bluetooth */
-		ethernet0 = &gmac2;
-		ethernet1 = &gmac3;
+		ethernet0 = &gmac3;
+		ethernet1 = &gmac2;
 	};
 
 	chosen {
@@ -88,19 +88,16 @@
 
 		ble_status: gpio_ble_status {
 			gpio-export,name = "ble_status";
-			gpio-export,output = <0>;
 			gpios = <&qcom_pinmux 32 GPIO_ACTIVE_HIGH>;
 		};
 
 		ble_active: gpio_ble_active {
-			gpio-export,name = "ble_status";
-			gpio-export,output = <0>;
+			gpio-export,name = "ble_active";
 			gpios = <&qcom_pinmux 63 GPIO_ACTIVE_HIGH>;
 		};
 
 		poe_status: gpio_poe_status {
 			gpio-export,name = "poe_status";
-			gpio-export,output = <0>;
 			gpios = <&qcom_pinmux 15 GPIO_ACTIVE_LOW>;
 		};
 	};
@@ -125,8 +122,17 @@
 		mux {
 			pins = "gpio22", "gpio23", "gpio24", "gpio25";
 			function = "gsbi2";
-			drive-strength = <12>;
+			drive-strength = <4>;
+		};
+
+		tx {
+			pins = "gpio22";
 			bias-disable;
+		};
+
+		rx_rts_cts {
+			pins = "gpio23", "gpio24", "gpio25";
+			bias-pull-up;
 		};
 	};
 
@@ -134,15 +140,15 @@
 		ble_reset {
 			pins = "gpio31";
 			function = "gpio";
-			drive-strength = <12>;
-			bias-pull-down;
-			output-low;
+			drive-strength = <4>;
+			bias-pull-up;
+			output-high;
 		};
 
 		ble_status {
 			pins = "gpio32", "gpio63", "gpio68";
 			function = "gpio";
-			drive-strength = <12>;
+			drive-strength = <2>;
 			bias-disable;
 		};
 
@@ -150,7 +156,7 @@
 			pins = "gpio15";
 			function = "gpio";
 			drive-strength = <2>;
-			bias-pull-down;
+			bias-disable;
 		};
 	};
 
@@ -251,76 +257,76 @@
 				#size-cells = <1>;
 
 				partition@0 {
-					label = "SBL1";
+					label = "0:SBL1";
 					reg = <0x0 0x10000>;
 					read-only;
 				};
 
 				partition@10000 {
-					label = "MIBIB";
+					label = "0:MIBIB";
 					reg = <0x10000 0x20000>;
 					read-only;
 				};
 
 				partition@30000 {
-					label = "SBL2";
+					label = "0:SBL2";
 					reg = <0x30000 0x30000>;
 					read-only;
 				};
 
 				partition@60000 {
-					label = "SBL3";
+					label = "0:SBL3";
 					reg = <0x60000 0x30000>;
 					read-only;
 				};
 
 				partition@90000 {
-					label = "DDRCONFIG";
+					label = "0:DDRCONFIG";
 					reg = <0x90000 0x10000>;
 					read-only;
 				};
 
 				partition@a0000 {
-					label = "APPSBLENV";
+					label = "0:APPSBLENV";
 					reg = <0xa0000 0x10000>;
 				};
 
 				art: partition@b0000 {
-					label = "ART";
+					label = "0:ART";
 					reg = <0xb0000 0x10000>;
 					read-only;
 				};
 
 				partition@c0000 {
-					label = "TZ";
+					label = "0:TZ";
 					reg = <0xc0000 0x30000>;
 					read-only;
 				};
 
 				partition@f0000 {
-					label = "RPM";
+					label = "0:RPM";
 					reg = <0xf0000 0x20000>;
 					read-only;
 				};
 
 				partition@110000 {
-					label = "APPSBL";
+					label = "0:APPSBL";
 					reg = <0x110000 0x90000>;
 					read-only;
 				};
 
 				partition@1a0000 {
-					label = "stat_cfg";
+					label = "0:stat_cfg";
 					reg = <0x1a0000 0x60000>;
 				};
 
 				partition@200000 {
-					label = "dyn_cfg";
+					label = "0:dyn_cfg";
 					reg = <0x200000 0x100000>;
 				};
 
 				partition@300000 {
-					label = "dyn_cfg_backup";
+					label = "0:dyn_cfg_backup";
 					reg = <0x300000 0x100000>;
 				};
 			};
@@ -369,8 +375,8 @@
 	phy-mode = "sgmii";
 	phy-handle = <&phy1>;
 
-	// nvmem-cells = <&macaddr_art_0>;
-	// nvmem-cell-names = "mac-address";
+	nvmem-cells = <&macaddr_art_6>;
+	nvmem-cell-names = "mac-address";
 
 	local-mac-address = [00 00 00 00 00 00]; /* Set by U-Boot */
 };
@@ -384,8 +390,8 @@
 	phy-mode = "sgmii";
 	phy-handle = <&phy2>;
 
-	// nvmem-cells = <&macaddr_art_6>;
-	// nvmem-cell-names = "mac-address";
+	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cell-names = "mac-address";
 
 	local-mac-address = [00 00 00 00 00 00]; /* Set by U-Boot */
 };
@@ -461,6 +467,7 @@
 		reg = <0x6 0x6>;
 	};
 
+	/* MAC address for CSR8311 BLE module */
 	macaddr_art_12: macaddr@12 {
 		reg = <0x12 0x6>;
 	};

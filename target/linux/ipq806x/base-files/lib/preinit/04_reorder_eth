@@ -2,6 +2,7 @@
 
 preinit_reorder_eth() {
 	case $(board_name) in
+	sophos,apx530 |\
 	ubnt,unifi-ac-hd)
 		ip link set eth0 name ethtmp
 		ip link set eth1 name eth0
