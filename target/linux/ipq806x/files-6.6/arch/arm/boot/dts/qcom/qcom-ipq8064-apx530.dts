@@ -22,7 +22,7 @@
 
 	chosen {
 		stdout-path = "serial0:115200n8";
-		bootargs = "ubi.mtd=rootfs loglevel=8 earlycon=msm_serial_dm,0x16340000 earlyprink console=ttyMSM0,115200";
+		bootargs-append = " ubi.block=0,rootfs root=/dev/ubiblock0_1 rootfstype=squashfs earlycon=msm_serial_dm,0x16340000";
 	};
 
 	memory@42000000 {
