@@ -396,17 +396,14 @@ endef
 TARGET_DEVICES += qcom_ipq8064-db149
 
 define Device/sophos_apx530
-	$(call Device/FitImage)
+	$(call Device/FitzImage)
 	$(call Device/UbiFit)
 	DEVICE_VENDOR := Sophos
 	DEVICE_MODEL := APX530
 	SOC := qcom-ipq8064
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	SUPPORTED_DEVICES := apx530
-	KERNEL_SIZE := 64m
-	KERNEL_NAME := zImage
-	KERNEL := kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+	IMAGE_SIZE := 65536k
 	DEVICE_DTS_CONFIG := config@2
 	DEVICE_PACKAGES := -kmod-ata-ahci -kmod-ata-ahci-platform -kmod-usb-ohci -kmod-usb2 \
 		-kmod-usb-ledtrig-usbport -kmod-usb-phy-qcom-dwc3 -kmod-usb3 -kmod-usb-dwc3-qcom \
