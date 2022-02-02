@@ -70,12 +70,13 @@ define Device/cavium_snic10e
   KERNEL := kernel-bin | append-dtb-elf
   KERNEL_DEPENDS := $$(wildcard $(DTS_DIR)/$(DEVICE_DTS).dts)
   KERNEL_INITRAMFS := kernel-bin | append-dtb-elf
-
   KERNEL_IN_UBI := 1
+  KERNEL_SIZE := 16384k
+  IMAGE_SIZE := 65536k
   BLOCKSIZE := 128k
   PAGESIZE := 2048
   SUBPAGESIZE := 2048
-  MKUBIFS_OPTS := -m $$(PAGESIZE) -e 128KiB -c 8192
+  VID_HDR_OFFSET := 2048
   IMAGES += nand-factory.img
   IMAGE/nand-factory.img := append-kernel | append-ubi
 endef
