@@ -94,7 +94,7 @@ endef
 TARGET_DEVICES += methode_udpu
 
 define Device/tplink_oc200
-  $(Device/NAND-512K)
+  $(call Device/NAND-512K)
   DEVICE_VENDOR := TP-Link
   DEVICE_MODEL := OC200
   DEVICE_VARIANT := V1

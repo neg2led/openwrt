@@ -58,71 +58,11 @@
 
 	memory {
 		device_type = "memory";
-		reg = <0x00000000 0x00000000 0x00000000 0x20000000>;
+		reg = <0x0 0x0 0x0 0x20000000>;
 	};
 
 	soc {
 		internal-regs {
-			reg_avs: avs@11500 {
-				status = "okay";
-			};
-
-			spinctrl: south-bridge-pinctrl@18830 {
-				system_led_pins: system-led-pins {
-					marvell,pins = "mpp1";
-					marvell,function = "gpio";
-				};
-
-				system_reset_pins: system-reset-pins {
-					marvell,pins = "mpp4";
-					marvell,function = "gpio";
-				};
-			};
-
-			u3d@50000 {
-				status = "disabled";
-				//phys = <&a3700_comphy 0 COMPHY_USB3>;
-				phy-names = "usb";
-			};
-
-			udc@54100 {
-				status = "disabled";
-				//phys = <&utmi_usb32>;
-				phy-names = "usb";
-			};
-
-			usb3@58000 {
-				status = "okay";
-			};
-
-			usb2@5e000 {
-				status = "okay";
-			};
-
-			utmi_usb32: utmi@5d000 {
-				status = "okay";
-			};
-
-			utmi_usb2: utmi@5f000 {
-				status = "okay";
-			};
-
-			vcc_sd_reg1: regulator@0 {
-				compatible = "regulator-gpio";
-				regulator-name = "vcc_sd1";
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <3300000>;
-				regulator-boot-on;
-
-				gpios = <&gpionb 4 GPIO_ACTIVE_HIGH>;
-				gpios-states = <0>;
-				states = <1800000 0x1
-					  3300000 0x0>;
-
-				enable-active-high;
-			};
-
-
 			bm: bm@c0000 {
 				compatible = "marvell,armada-380-neta-bm";
 				reg = <0xc0000 0xac>;
@@ -131,57 +71,15 @@
 				status = "okay";
 			};
 
-			bm_bppi: bm-bppi {
+			bm_bppi: bm-bppi@c8000 {
 				compatible = "mmio-sram";
 				reg = <0xc8000 0x1000>;
 				clocks = <&sb_periph_clk 9>;
 				no-memory-wc;
 				status = "okay";
 			};
-
-			eip97: eip97@90000 {
-				status = "okay";
-			};
 		};
 	};
-
-/* Upstream has no DSA support for ar8236 */
-/*
-	dsa@0 {
-		compatible = "marvell,dsa";
-		dsa,ethernet = <&eth0>;
-		dsa,mii-bus = <&mdio>;
-		#address-cells = <2>;
-		#size-cells = <0>;
-
-		switch@0 {
-				#address-cells = <1>;
-				#size-cells = <0>;
-				reg = <0 0>;
-
-				port@0 {
-						reg = <0>;
-						label = "cpu";
-						fixed-link {
-							speed = <100>;
-							full-duplex;
-						};
-				};
-
-				port@1 {
-						reg = <1>;
-						label = "lan0";
-						phy-handle = <&phy1>;
-				};
-
-				port@2 {
-						reg = <2>;
-						label = "lan1";
-						phy-handle = <&phy2>;
-				};
-		};
-	};
-*/
 
 	gpio-leds {
 		compatible = "gpio-leds";
@@ -208,10 +106,28 @@
 	};
 };
 
+&avs {
+	status = "okay";
+};
+
+&pinctrl_sb {
+	system_led_pins: system-led-pins {
+		marvell,pins = "mpp1";
+		marvell,function = "gpio";
+	};
+
+	system_reset_pins: system-reset-pins {
+		marvell,pins = "mpp4";
+		marvell,function = "gpio";
+	};
+};
+
 &spi0 {
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi_quad_pins &spi_cs1_pins>;
 
-	spi-flash@0 {
+	flash0: spi-flash@0 {
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "jedec,spi-nor";
@@ -219,9 +135,22 @@
 		spi-max-frequency = <104000000>;
 		m25p,fast-read;
 
-		pinctrl-names = "default";
-		pinctrl-0 = <&spi_cs1_pins &spi_quad_pins>;
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "nor";
+				reg = <0x0 0x100000>;
+				read-only;
+			};
+		}
 	};
+};
+
+&crypto {
+	statys = "okay";
 };
 
 &uart0 {
@@ -243,53 +172,88 @@
 	bm,pool-long = <1>;
 	bm,pool-short = <3>;
 
+	phy-handle = <&switch0cpu>;
+
 	fixed-link {
 		speed = <100>;
 		full-duplex;
-		//pause;
 	};
-
 };
 
 &mdio {
-	switch0: switch@0 {
-		compatible = "qca,ar8236";
+	status = "okay";
+
+	phy0: ethernet-phy@0 {
+		reg = <0>;
+	};
+
+	phy1: ethernet-phy@1 {
+		reg = <1>;
+	};
+
+	switch@10 {
+		compatible = "qca,qca8236";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg = <0 0>;
+		dsa,ethernet = <&eth0>;
+		dsa,mii-bus = <&mdio>;
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			switch0cpu: port@0 {
+				reg = <0>;
+				label = "cpu";
+				fixed-link {
+					speed = <100>;
+					full-duplex;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				label = "lan0";
+				phy-handle = <&phy0>;
+			};
+
+			port@2 {
+				reg = <2>;
+				label = "lan1";
+				phy-handle = <&phy1>;
+			};
+		};
 	};
+
 };
 
-&sdhci1 {
-	wp-inverted;
-	bus-width = <4>;
-	cd-gpios = <&gpionb 3 GPIO_ACTIVE_LOW>;
-	no-1-8-v;
-	vqmmc-supply = <&vcc_sd_reg1>;
-	marvell,pad-type = "sd";
+&usb2 {
 	status = "okay";
+};
 
-	pinctrl-names = "default";
-	pinctrl-0 = <&sdio_pins>;
+&usb3 {
+	status = "okay";
 };
 
 &sdhci0 {
-	marvell,pad-type = "fixed-1-8v";
-	non-removable;
+	#address-cells = <1>;
+	#size-cells = <0>;
 	bus-width = <8>;
-	cap-mmc-highspeed;
-	max-frequency = <52000000>;
-	marvell,xenon-emmc;
-	marvell,xenon-broken-hs200;
-	marvell,xenon-tun-count = <9>;
-	status = "okay";
+	mmc-ddr-1_8v;
+	mmc-hs400-1_8v;
+	non-removable;
+	no-sd;
+	no-sdio;
+
+	marvell,pad-type = "fixed-1-8v";
 
 	pinctrl-names = "default";
 	pinctrl-0 = <&mmc_pins>;
-	#address-cells = <1>;
-	#size-cells = <0>;
-	mmccard: mmccard@0 {
-		compatible = "mmc-card";
+	status = "okay";
+
+	emmc0: mmccard@0 {
 		reg = <0>;
+		compatible = "mmc-card";
 	};
 };
