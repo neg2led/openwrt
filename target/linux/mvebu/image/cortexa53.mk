@@ -105,12 +105,13 @@ define Device/tplink_oc200
   KERNEL_INITRAMFS := kernel-bin | append-dtb
   KERNEL_LOADADDR := 0x5000000
   KERNEL_NAME := Image
-  IMAGES := factory.bin sysupgrade.bin
+  IMAGES := factory.bin sysupgrade.bin fdt.dtb
   IMAGE/factory.bin := append-rootfs | tplink-mvebu
   IMAGE/sysupgrade.bin := append-dtb | pad-to 64k | check-size 64k | \
-	append-kernel | pad-to 32832k | check-size 32832k | \
-	append-rootfs | pad-rootfs $$(BLOCKSIZE) | check-size 295424k | \
-	append-metadata
+	  append-kernel | pad-to 32832k | check-size 32832k | \
+	  append-rootfs | pad-rootfs $$(BLOCKSIZE) | check-size 295424k | \
+	  append-metadata
+  IMAGE/fdt.dtb := append-dtb
   TPLINK_BOARD_ID := OC200
 endef
 TARGET_DEVICES += tplink_oc200
