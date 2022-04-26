@@ -1,0 +1,21 @@
+From 6c8e5cb264df8e9fbfe1309550c10bccddc922f0 Mon Sep 17 00:00:00 2001
+From: Andrew Powers-Holmes <aholmes@omnom.net>
+Date: Mon, 25 Apr 2022 23:54:28 +1000
+Subject: [PATCH] arm64: dts: freescale: ls1043a: add support for WatchGuard Firebox T20 / T40
+
+Signed-off-by: Andrew Powers-Holmes <aholmes@omnom.net>
+---
+ arch/arm64/boot/dts/freescale/Makefile             |  2 ++
+ 1 files changed, 2 insertions(+)
+
+--- a/arch/arm64/boot/dts/freescale/Makefile
++++ b/arch/arm64/boot/dts/freescale/Makefile
+@@ -31,6 +31,8 @@ dtb-$(CONFIG_ARCH_LAYERSCAPE) += fsl-lx2
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += traverse-ls1043v.dtb
+ dtb-$(CONFIG_ARCH_LAYERSCAPE) += traverse-ls1043s.dtb
+
++dtb-$(CONFIG_ARCH_LAYERSCAPE) += watchguard-firebox-t20t40.dtb
++
+ dtb-$(CONFIG_ARCH_MXC) += imx8mm-beacon-kit.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mm-evk.dtb
+ dtb-$(CONFIG_ARCH_MXC) += imx8mm-ddr4-evk.dtb

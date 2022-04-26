@@ -433,3 +433,32 @@ define Device/traverse_ls1043
   SUPPORTED_DEVICES := traverse,ls1043s traverse,ls1043v
 endef
 TARGET_DEVICES += traverse_ls1043
+
+define Device/watchguard_firebox-t20t40
+  $(Device/fix-sysupgrade)
+  DEVICE_VENDOR := WatchGuard
+  DEVICE_MODEL := Firebox
+  DEVICE_VARIANT := T20/T40
+  KERNEL_NAME := Image
+  KERNEL_SUFFIX := -kernel.itb
+  KERNEL_INSTALL := 1
+  FDT_LOADADDR = 0x90000000
+  DEVICE_PACKAGES += \
+    layerscape-fman \
+    uboot-envtools \
+    fmc fmc-eth-config \
+    kmod-ahci-qoriq \
+    kmod-rtc-s35390a \
+    kmod-tpm-i2c-atmel \
+    kmod-eeprom-at24
+  DEVICE_DTS = freescale/watchguard-firebox-t20t40
+  DEVICE_DTS_DIR = $(LINUX_DIR)/arch/arm64/boot/dts
+  DEVICE_DTS_CONFIG = t20t40
+  KERNEL := kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+  KERNEL_INITRAMFS := kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+  IMAGES = root sysupgrade.bin
+  IMAGE/root = append-rootfs
+  IMAGE/sysupgrade.bin = sysupgrade-tar | append-metadata
+  SUPPORTED_DEVICES := watchguard,firebox-t20 watchguard,firebox-t40
+endef
+TARGET_DEVICES += watchguard_firebox-t20t40

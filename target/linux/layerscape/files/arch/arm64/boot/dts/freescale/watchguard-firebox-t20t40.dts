@@ -1,0 +1,265 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+
+/dts-v1/;
+#include "fsl-ls1043a.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	model = "WatchGuard FireBox T20/T40";
+	compatible = "watchguard,firebox-t20", "watchguard,firebox-t40",
+		     "fsl,ls1043a-rdb", "fsl,ls1043a";
+
+	aliases {
+		crypto = &crypto;
+		serial0 = &duart0;
+		serial1 = &duart1;
+		serial2 = &duart2;
+		serial3 = &duart3;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		status = "disabled";
+	};
+
+	keys {
+		compatible = "gpio-keys-polled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		poll-interval = <1000>;
+		status = "disabled";
+	};
+
+};
+
+&esdhc {
+	mmc-hs200-1_8v;
+	sd-uhs-sdr104;
+	sd-uhs-sdr50;
+	sd-uhs-sdr25;
+	sd-uhs-sdr12;
+};
+
+&i2c0 {
+	tpm@29 {
+		reg = <0x29>;
+		label = "tpm";
+		compatible = "atmel,at97sc3204t";
+	};
+
+	rtc0: rtc@30 {
+		reg = <0x30>;
+		compatible = "sii,s35390a";
+	};
+
+	eeprom: eeprom@50 {
+		reg = <0x50>;
+		compatible = "atmel,24c02";
+		pagesize = <1>;
+	};
+};
+
+&qspi {
+	status = "okay";
+	bus-num = <0>;
+
+	qflash0: flash@0 {
+		compatible = "fsl,mx25u3235f", "jedec,spi-nor";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		spi-max-frequency = <50000000>;
+		spi-rx-bus-width = <4>;
+		spi-tx-bus-width = <4>;
+		mode = <0>;
+		reg = <0>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				reg = <0x00 0x100000>;
+				label = "rcw+pbi";
+				read-only;
+			};
+
+			partition@100000 {
+				reg = <0x100000 0x100000>;
+				label = "u-boot";
+				read-only;
+			};
+
+			partition@200000 {
+				reg = <0x200000 0x10000>;
+				label = "u-boot-env";
+			};
+
+			partition@210000 {
+				reg = <0x210000 0x10000>;
+				label = "empty-1";
+				read-only;
+			};
+
+			partition@220000 {
+				reg = <0x220000 0x20000>;
+				label = "fman ucode";
+				read-only;
+			};
+
+			partition@240000 {
+				reg = <0x240000 0x40000>;
+				label = "empty-2-ppa";
+				read-only;
+			};
+
+			partition@280000 {
+				reg = <0x280000 0x20000>;
+				label = "wg-cfg0";
+				read-only;
+			};
+
+			partition@2a0000 {
+				reg = <0x2a0000 0x20000>;
+				label = "wg-cfg1";
+				read-only;
+			};
+
+			partition@2c0000 {
+				reg = <0x2c0000 0x20000>;
+				label = "wg-mfg";
+				read-only;
+			};
+
+			partition@2e0000 {
+				reg = <0x2e0000 0x20000>;
+				label = "empty-3";
+				read-only;
+			};
+
+			partition@300000 {
+				reg = <0x300000 0x20000>;
+				label = "fman-ucode-old";
+				read-only;
+			};
+
+			partition@320000 {
+				reg = <0x320000 0xe0000>;
+				label = "wg-bootopt";
+				read-only;
+			};
+		};
+	};
+};
+
+&duart0 {
+	status = "okay";
+};
+
+&duart1 {
+	status = "okay";
+};
+
+&pcie1 {
+	status = "okay";
+};
+
+&pcie2 {
+	status = "okay";
+};
+
+&pcie3 {
+	status = "okay";
+};
+
+&usb0 {
+	status = "okay";
+};
+
+&usb1 {
+	status = "okay";
+};
+
+&usb2 {
+	status = "okay";
+};
+
+#include "fsl-ls1043-post.dtsi"
+
+&enet0 {
+	phy-handle = <&phy_port1>;
+	phy-connection-type = "rgmii-id";
+};
+
+&enet1 {
+	phy-handle = <&phy_port2>;
+	phy-connection-type = "rgmii-id";
+};
+
+&enet2 {
+	phy-handle = <&phy_port3>;
+	phy-connection-type = "rgmii-id";
+};
+
+&enet3 {
+	status = "disabled";
+};
+
+&enet4 {
+	phy-handle = <&phy_port4>;
+	phy-connection-type = "rgmii-id";
+};
+
+&enet5 {
+	phy-handle = <&phy_port5>;
+	phy-connection-type = "rgmii-id";
+};
+
+&enet6 {
+	status = "disabled";
+};
+
+&mdio0 {
+	phy_port1: ethernet-phy@1 {
+		reg = <0x1>;
+	};
+
+	phy_port2: ethernet-phy@2 {
+		reg = <0x2>;
+	};
+
+	phy_port4: ethernet-phy@3 {
+		reg = <0x4>;
+	};
+
+	phy_port5: ethernet-phy@4 {
+		reg = <0x5>;
+	};
+};
+
+&xmdio0 {
+	phy_port3: ethernet-phy@1 {
+		reg = <0x1>;
+	};
+};
+
+&uqe {
+	ucc_hdlc: ucc@2000 {
+		compatible = "fsl,ucc-hdlc";
+		rx-clock-name = "clk8";
+		tx-clock-name = "clk9";
+		fsl,rx-sync-clock = "rsync_pin";
+		fsl,tx-sync-clock = "tsync_pin";
+		fsl,tx-timeslot-mask = <0xfffffffe>;
+		fsl,rx-timeslot-mask = <0xfffffffe>;
+		fsl,tdm-framer-type = "e1";
+		fsl,tdm-id = <0>;
+		fsl,siram-entry-id = <0>;
+		fsl,tdm-interface;
+	};
+};
