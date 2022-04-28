@@ -13,6 +13,11 @@ case "$(board_name)" in
 		ucidef_set_interface_lan "eth0 eth1 eth2 eth3 eth6"
 		ucidef_set_interface_wan "eth4"
 		;;
+	watchguard,firebox-t20*|\
+	watchguard,firebox-t40*)
+		ucidef_set_interface_lan "eth1" "eth2" "eth3" "eth4"
+		ucidef_set_interface_wan "eth0"
+		;;
 esac
 
 board_config_flush

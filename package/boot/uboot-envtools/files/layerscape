@@ -16,6 +16,10 @@ case "$board" in
 	traverse,ls1043s)
 		ubootenv_add_uci_config "/dev/mtd1" "0x40000" "0x2000"  "0x20000"
 	;;
+	watchguard,firebox-t20*|\
+	watchguard,firebox-t40*)
+		ubootenv_add_uci_config "/dev/mtd2" "0x0" "0x2000"  "0x10000"
+	;;
 esac
 
 config_load ubootenv

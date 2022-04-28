@@ -6,9 +6,6 @@
 #include <dt-bindings/input/input.h>
 
 / {
-	model = "WatchGuard Firebox T20";
-	compatible = "watchguard,firebox-t20", "fsl,ls1043a-rdb", "fsl,ls1043a";
-
 	aliases {
 		crypto = &crypto;
 		serial0 = &duart0;
@@ -254,17 +251,17 @@
 
 &enet0 {
 	phy-handle = <&phy_port1>;
-	phy-mode = "qsgmii";
+	phy-mode = "sgmii";
 };
 
 &enet1 {
 	phy-handle = <&phy_port2>;
-	phy-mode = "qsgmii";
+	phy-mode = "sgmii";
 };
 
 &enet2 {
 	phy-handle = <&phy_port0>;
-	phy-mode = "rgmii-id";
+	phy-connection-type = "rgmii-id";
 };
 
 &enet3 {
@@ -273,12 +270,12 @@
 
 &enet4 {
 	phy-handle = <&phy_port3>;
-	phy-mode = "qsgmii";
+	phy-mode = "sgmii";
 };
 
 &enet5 {
 	phy-handle = <&phy_port4>;
-	phy-mode = "qsgmii";
+	phy-mode = "sgmii";
 };
 
 &enet6 {
@@ -288,22 +285,22 @@
 &mdio0 {
 	/* Marvell Alaska 88E1543 quad-port SGMII PHY */
 	phy_port1: ethernet-phy@4 {
-		compatible = "ethernet-phy-ieee802.3-c22";
+		compatible = "ethernet-phy-ieee802.3-c45";
 		reg = <4>;
 	};
 
 	phy_port2: ethernet-phy@5 {
-		compatible = "ethernet-phy-ieee802.3-c22";
+		compatible = "ethernet-phy-ieee802.3-c45";
 		reg = <5>;
 	};
 
 	phy_port3: ethernet-phy@6 {
-		compatible = "ethernet-phy-ieee802.3-c22";
+		compatible = "ethernet-phy-ieee802.3-c45";
 		reg = <6>;
 	};
 
 	phy_port4: ethernet-phy@7 {
-		compatible ="ethernet-phy-ieee802.3-c22";
+		compatible ="ethernet-phy-ieee802.3-c45";
 		reg = <7>;
 	};
 };
@@ -314,14 +311,4 @@
 		compatible = "ethernet-phy-ieee802.3-c22";
 		reg = <1>;
 	};
-};
-
-&ptp_timer0 {
-	fsl,cksel       = <1>;
-	fsl,tclk-period = <10>;
-	fsl,tmr-prsc    = <100>;
-	fsl,tmr-add     = <0x999999a4>;
-	fsl,tmr-fiper1  = <0x3b9ac9f6>;
-	fsl,tmr-fiper2  = <0x00018696>;
-	fsl,max-adj     = <659999998>;
 };

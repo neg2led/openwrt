@@ -441,7 +441,7 @@ define Device/watchguard_firebox-t20t40
   DEVICE_VARIANT := T20/T40
   KERNEL_NAME := Image
   KERNEL_SUFFIX := -kernel.itb
-  KERNEL_INSTALL := 1
+  FILESYSTEMS := ext4 squashfs
   FDT_LOADADDR = 0x90000000
   DEVICE_PACKAGES += \
     layerscape-fman \
@@ -453,11 +453,11 @@ define Device/watchguard_firebox-t20t40
     kmod-eeprom-at24
   DEVICE_DTS = freescale/watchguard-firebox-t20t40
   DEVICE_DTS_DIR = $(LINUX_DIR)/arch/arm64/boot/dts
-  DEVICE_DTS_CONFIG = t20t40
   KERNEL := kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
   KERNEL_INITRAMFS := kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
-  IMAGES = root sysupgrade.bin
+  IMAGES = root recovery.itb sysupgrade.bin
   IMAGE/root = append-rootfs
+  IMAGE/recovery.itb = kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb with-initramfs
   IMAGE/sysupgrade.bin = sysupgrade-tar | append-metadata
   SUPPORTED_DEVICES := watchguard,firebox-t20 watchguard,firebox-t40
 endef
