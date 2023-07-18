@@ -14,6 +14,22 @@ define Build/strip-kernel
 	$(TARGET_CROSS)strip -R .notes $@ -o $@.stripped && mv $@.stripped $@
 endef
 
+define Build/xapimg
+	dd if=/dev/zero of=$(KDIR)/dummy.img bs=1 count=1
+	mkimage \
+		-A mips \
+		-C none \
+		-O Linux \
+		-T multi \
+		-a 0x0 \
+		-d $@:$(KDIR)/dummy.img \
+		-e 0x0 \
+		-n "$(VERSION_DIST) Linux-$(LINUX_VERSION)" \
+		$@.xap
+	mv $@.xap $@
+		#-d $<:$(KDIR)/vmlinux-initramfs.elf:$@-rootfs.bin $@
+endef
+
 DTS_DIR := $(DTS_DIR)/cavium-octeon
 
 define Device/Default
@@ -111,5 +127,20 @@ define Device/cisco_vedge1000
   DEVICE_DTS := cn6130_cisco_vedge1000
 endef
 TARGET_DEVICES += cisco_vedge1000
+
+define Device/xirrus_xd2-240
+  DEVICE_DTS := cn7020_xirrus_xd2-240
+  DEVICE_VENDOR := Xirrus
+  DEVICE_MODEL := XD2-240
+  DEVICE_PACKAGES += \
+	brcmfmac-firmware-4366c0 \
+	kmod-brcmfmac
+  #IMAGES := factory.bin
+  #IMAGE/factory.bin := append-rootfs | pad-rootfs | pad-to 128k | xapimg
+  KERNEL := kernel-bin | append-dtb-elf
+  KERNEL_INITRAMFS := kernel-bin | append-dtb-elf | xapimg
+  #KERNEL_INITRAMFS := kernel-bin | xapimg
+endef
+TARGET_DEVICES += xirrus_xd2-240
 
 $(eval $(call BuildImage))

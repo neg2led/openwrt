@@ -1,0 +1,27 @@
+diff --git a/drivers/staging/octeon/ethernet-rx.c b/drivers/staging/octeon/ethernet-rx.c
+index 965330eec80a..063a4b3fdc3a 100644
+--- a/drivers/staging/octeon/ethernet-rx.c
++++ b/drivers/staging/octeon/ethernet-rx.c
+@@ -363,8 +363,8 @@ static int cvm_oct_poll(struct oct_rx_group *rx_group, int budget)
+ 			 * Drop any packet received for a device that
+ 			 * doesn't exist.
+ 			 */
+-			printk_ratelimited("Port %d not controlled by Linux, packet dropped\n",
+-					   port);
++			printk_ratelimited("Port %d not controlled by Linux, packet dropped (TOTAL_NUMBER_OF_PORTS: %d)\n",
++					   port, TOTAL_NUMBER_OF_PORTS);
+ 			dev_kfree_skb_irq(skb);
+ 		}
+ 		/*
+diff --git a/drivers/staging/octeon/ethernet.c b/drivers/staging/octeon/ethernet.c
+index 9eee28f2940c..8c1da12da841 100644
+--- a/drivers/staging/octeon/ethernet.c
++++ b/drivers/staging/octeon/ethernet.c
+@@ -703,6 +703,7 @@ static int cvm_oct_probe(struct platform_device *pdev)
+ 
+ 	/* Change the input group for all ports before input is enabled */
+ 	num_interfaces = cvmx_helper_get_number_of_interfaces();
++	pr_err("Octeon number of interfaces: %d\n", num_interfaces);
+ 	for (interface = 0; interface < num_interfaces; interface++) {
+ 		int num_ports = cvmx_helper_ports_on_interface(interface);
+ 		int port;

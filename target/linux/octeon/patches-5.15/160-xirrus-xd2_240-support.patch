@@ -1,0 +1,30 @@
+--- a/arch/mips/include/asm/octeon/cvmx-bootinfo.h
++++ b/arch/mips/include/asm/octeon/cvmx-bootinfo.h
+@@ -300,6 +300,7 @@ enum cvmx_board_types_enum {
+ 	CVMX_BOARD_TYPE_UBNT_E220 = 20005,
+ 	CVMX_BOARD_TYPE_ITUS_SHIELD = 20006,
+ 	CVMX_BOARD_TYPE_UBNT_E300 = 20300,
++	CVMX_BOARD_TYPE_XIRRUS_XD2_240 = 20495,
+ 	CVMX_BOARD_TYPE_KONTRON_S1901 = 21901,
+ 	CVMX_BOARD_TYPE_CUST_PRIVATE_MAX = 30000,
+ 
+@@ -405,6 +406,7 @@ static inline const char *cvmx_board_typ
+ 		ENUM_BRD_TYPE_CASE(CVMX_BOARD_TYPE_UBNT_E220)
+ 		ENUM_BRD_TYPE_CASE(CVMX_BOARD_TYPE_ITUS_SHIELD)
+ 		ENUM_BRD_TYPE_CASE(CVMX_BOARD_TYPE_UBNT_E300)
++		ENUM_BRD_TYPE_CASE(CVMX_BOARD_TYPE_XIRRUS_XD2_240)
+ 		ENUM_BRD_TYPE_CASE(CVMX_BOARD_TYPE_KONTRON_S1901)
+ 		ENUM_BRD_TYPE_CASE(CVMX_BOARD_TYPE_CUST_PRIVATE_MAX)
+ 	}
+--- a/arch/mips/cavium-octeon/executive/cvmx-helper-board.c
++++ b/arch/mips/cavium-octeon/executive/cvmx-helper-board.c
+@@ -183,6 +183,9 @@ int cvmx_helper_board_get_mii_address(in
+ 		else
+ 			return -1;
+ 
++	case CVMX_BOARD_TYPE_XIRRUS_XD2_240:
++		cvmx_dprintf("cvmx_helper_board_get_mii_address: idp_port='%d'\n", ipd_port);
++		return ipd_port;
+ 	}
+ 
+ 	/* Some unknown board. Somebody forgot to update this function... */
