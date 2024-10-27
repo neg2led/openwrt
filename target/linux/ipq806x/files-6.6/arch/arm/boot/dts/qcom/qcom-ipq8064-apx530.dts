@@ -44,7 +44,7 @@
 	leds {
 		compatible = "gpio-leds";
 
-		pinctrl-0 = <&leds_pins>;
+		pinctrl-0 = <&led_pins>;
 		pinctrl-names = "default";
 
 		led_status_red: status_red {
@@ -61,7 +61,6 @@
 
 	keys {
 		compatible = "gpio-keys";
-
 		pinctrl-0 = <&button_pins>;
 		pinctrl-names = "default";
 
@@ -104,34 +103,11 @@
 };
 
 &qcom_pinmux {
-	spi_pins: spi_pins {
+	button_pins: button_pins {
 		mux {
-			pins = "gpio18", "gpio19", "gpio21";
-			function = "gsbi5";
-			drive-strength = <10>;
-			bias-none;
-		};
-
-		cs {
-			pins = "gpio20";
-			drive-strength = <12>;
-		};
-	};
-
-	hci_uart_pins: hci_uart_pins {
-		mux {
-			pins = "gpio22", "gpio23", "gpio24", "gpio25";
-			function = "gsbi2";
-			drive-strength = <4>;
-		};
-
-		tx {
-			pins = "gpio22";
-			bias-disable;
-		};
-
-		rx_rts_cts {
-			pins = "gpio23", "gpio24", "gpio25";
+			pins = "gpio29";
+			function = "gpio";
+			drive-strength = <2>;
 			bias-pull-up;
 		};
 	};
@@ -160,21 +136,20 @@
 		};
 	};
 
-	leds_pins: leds_pins {
+	hci_uart_pins: hci_uart_pins {
 		mux {
-			pins = "gpio27", "gpio28";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-pull-down;
-			output-low;
+			pins = "gpio22", "gpio23", "gpio24", "gpio25";
+			function = "gsbi2";
+			drive-strength = <4>;
 		};
-	};
 
-	button_pins: button_pins {
-		mux {
-			pins = "gpio29";
-			function = "gpio";
-			drive-strength = <2>;
+		tx {
+			pins = "gpio22";
+			bias-disable;
+		};
+
+		rx_rts_cts {
+			pins = "gpio23", "gpio24", "gpio25";
 			bias-pull-up;
 		};
 	};
@@ -187,6 +162,31 @@
 			bias-disable;
 		};
 	};
+
+	led_pins: led_pins {
+		mux {
+			pins = "gpio27", "gpio28";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+	};
+
+	spi_pins: spi_pins {
+		mux {
+			pins = "gpio18", "gpio19", "gpio21";
+			function = "gsbi5";
+			drive-strength = <10>;
+			bias-none;
+		};
+
+		cs {
+			pins = "gpio20";
+			drive-strength = <12>;
+		};
+	};
+
 };
 
 &adm_dma {
@@ -234,7 +234,7 @@
 	status = "okay";
 	qcom,mode = <GSBI_PROT_SPI>;
 
-	gsbi5_spi: spi@1a280000 {
+	spi@1a280000 {
 		status = "okay";
 		spi-max-frequency = <50000000>;
 
@@ -291,10 +291,37 @@
 					reg = <0xa0000 0x10000>;
 				};
 
-				art: partition@b0000 {
+				partition@b0000 {
 					label = "0:ART";
 					reg = <0xb0000 0x10000>;
 					read-only;
+
+					nvmem-layout {
+						compatible = "fixed-layout";
+						#address-cells = <1>;
+						#size-cells = <1>;
+
+						macaddr_ART_0: macaddr@0 {
+							reg = <0x0 0x6>;
+						};
+
+						macaddr_ART_6: macaddr@6 {
+							reg = <0x6 0x6>;
+						};
+
+						/* MAC address for CSR8311 BLE module */
+						macaddr_ART_12: macaddr@12 {
+							reg = <0x12 0x6>;
+						};
+
+						precal_ART_1000: precal@1000 {
+							reg = <0x1000 0x2f20>;
+						};
+
+						precal_ART_5000: precal@5000 {
+							reg = <0x5000 0x2f20>;
+						};
+					};
 				};
 
 				partition@c0000 {
@@ -375,10 +402,11 @@
 	phy-mode = "sgmii";
 	phy-handle = <&phy1>;
 
-	nvmem-cells = <&macaddr_art_6>;
+	nvmem-cells = <&macaddr_ART_6>;
 	nvmem-cell-names = "mac-address";
 
-	local-mac-address = [00 00 00 00 00 00]; /* Set by U-Boot */
+	/* OEM U-Boot sets this property & boot will fail if it is removed */
+	local-mac-address = [00 00 00 00 00 00];
 };
 
 &gmac3 {
@@ -390,10 +418,11 @@
 	phy-mode = "sgmii";
 	phy-handle = <&phy2>;
 
-	nvmem-cells = <&macaddr_art_0>;
+	nvmem-cells = <&macaddr_ART_0>;
 	nvmem-cell-names = "mac-address";
 
-	local-mac-address = [00 00 00 00 00 00]; /* Set by U-Boot */
+	/* OEM U-Boot sets this property & boot will fail if it is removed */
+	local-mac-address = [00 00 00 00 00 00];
 };
 
 &nand_controller {
@@ -423,10 +452,41 @@
 
 &pcie0 {
 	status = "okay";
+
+	bridge@0,0 {
+		reg = <0x00000000 0 0 0 0>;
+		#address-cells = <3>;
+		#size-cells = <2>;
+		ranges;
+
+		wifi0: wifi@1,0 {
+			compatible = "pci168c,0046";
+			reg = <0x00010000 0 0 0 0>;
+
+			nvmem-cells = <&precal_ART_1000>;
+			nvmem-cell-names = "pre-calibration";
+		};
+	};
+
 };
 
 &pcie1 {
 	status = "okay";
+
+	bridge@0,0 {
+		reg = <0x00000000 0 0 0 0>;
+		#address-cells = <3>;
+		#size-cells = <2>;
+		ranges;
+
+		wifi1: wifi@1,0 {
+			compatible = "pci168c,0046";
+			reg = <0x00010000 0 0 0 0>;
+
+			nvmem-cells = <&precal_ART_5000>;
+			nvmem-cell-names = "pre-calibration";
+		};
+	};
 };
 
 &hs_phy_0 {
@@ -452,23 +512,4 @@
 
 &tcsr {
 	status = "okay";
-};
-
-&art {
-	compatible = "nvmem-cells";
-	#address-cells = <1>;
-	#size-cells = <1>;
-
-	macaddr_art_0: macaddr@0 {
-		reg = <0x0 0x6>;
-	};
-
-	macaddr_art_6: macaddr@6 {
-		reg = <0x6 0x6>;
-	};
-
-	/* MAC address for CSR8311 BLE module */
-	macaddr_art_12: macaddr@12 {
-		reg = <0x12 0x6>;
-	};
 };
