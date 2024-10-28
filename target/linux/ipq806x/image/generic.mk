@@ -511,11 +511,13 @@ endef
 TARGET_DEVICES += qcom_ipq8064-db149
 
 define Device/sophos_apx530
-	$(call Device/FitzImage)
+	$(call Device/FitImage)
 	$(call Device/UbiFit)
 	DEVICE_VENDOR := Sophos
 	DEVICE_MODEL := APX530
 	SOC := qcom-ipq8064
+	DEVICE_DTS := qcom-ipq8064-apx530
+	KERNEL_INSTALL := 1
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	IMAGE_SIZE := 65536k

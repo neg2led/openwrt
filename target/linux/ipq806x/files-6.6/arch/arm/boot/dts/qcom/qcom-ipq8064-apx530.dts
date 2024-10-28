@@ -425,7 +425,7 @@
 	local-mac-address = [00 00 00 00 00 00];
 };
 
-&nand_controller {
+&nand {
 	status = "okay";
 
 	pinctrl-0 = <&nand_pins>;
